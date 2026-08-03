@@ -45,7 +45,7 @@ export function Login() {
         </div>
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
+      <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
             <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-ink-900">
@@ -80,7 +80,12 @@ export function Login() {
           </form>
           <div className="mt-6 rounded-xl bg-ink-100 p-3 text-xs text-ink-500">
             <p className="font-semibold text-ink-600">Demo accounts (password: demo123456)</p>
-            <p className="mt-1">customer@local.link · plumber@local.link · electric@local.link · tutor@local.link</p>
+            <ul className="mt-1 space-y-0.5 break-all">
+              <li>customer@local.link</li>
+              <li>plumber@local.link</li>
+              <li>electric@local.link</li>
+              <li>tutor@local.link</li>
+            </ul>
           </div>
         </div>
       </div>

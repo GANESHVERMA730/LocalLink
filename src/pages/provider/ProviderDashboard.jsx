@@ -43,7 +43,7 @@ export function ProviderDashboard() {
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <PageHeader title={`Welcome, ${user?.name ?? ''}`} subtitle="Here's what's happening with your services" />
 
-      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard icon={<Inbox size={20} />} label="Pending requests" value={pending.length} color="amber" />
         <StatCard icon={<Calendar size={20} />} label="Upcoming" value={upcoming.length} color="primary" />
         <StatCard icon={<CheckCircle2 size={20} />} label="Completed" value={completed.length} color="ink" />
@@ -70,14 +70,14 @@ export function ProviderDashboard() {
         ) : (
           <div className="space-y-3">
             {pending.slice(0, 3).map((b) => (
-              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-center gap-4 p-4">
-                <Avatar src={b.customer?.profileImage} name={b.customer?.name ?? 'Customer'} size="md" />
+              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-start gap-3 p-4 sm:items-center sm:gap-4">
+                <Avatar src={b.customer?.profileImage} name={b.customer?.name ?? 'Customer'} size="md" className="shrink-0" />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold text-ink-900">{b.customer?.name ?? 'Customer'}</h3>
                   <p className="truncate text-sm text-ink-500">{b.service?.title}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-400"><Calendar size={12} />{formatDateTime(b.scheduledAt)}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-400"><Calendar size={12} className="shrink-0" />{formatDateTime(b.scheduledAt)}</p>
                 </div>
-                <ArrowRight size={16} className="shrink-0 text-ink-300 group-hover:text-primary-500" />
+                <ArrowRight size={16} className="mt-1 hidden shrink-0 text-ink-300 group-hover:text-primary-500 sm:mt-0 sm:block" />
               </Link>
             ))}
           </div>
@@ -91,14 +91,14 @@ export function ProviderDashboard() {
           </div>
           <div className="space-y-3">
             {upcoming.slice(0, 3).map((b) => (
-              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-center gap-4 p-4">
-                <Avatar src={b.customer?.profileImage} name={b.customer?.name ?? 'Customer'} size="md" />
+              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-start gap-3 p-4 sm:items-center sm:gap-4">
+                <Avatar src={b.customer?.profileImage} name={b.customer?.name ?? 'Customer'} size="md" className="shrink-0" />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold text-ink-900">{b.customer?.name ?? 'Customer'}</h3>
                   <p className="truncate text-sm text-ink-500">{b.service?.title}</p>
-                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-400"><Calendar size={12} />{formatDateTime(b.scheduledAt)}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-400"><Calendar size={12} className="shrink-0" />{formatDateTime(b.scheduledAt)}</p>
                 </div>
-                <StatusBadge status={b.status} />
+                <div className="shrink-0"><StatusBadge status={b.status} /></div>
               </Link>
             ))}
           </div>
@@ -114,16 +114,16 @@ function StatCard({ icon, label, value, color }) {
     <div className="card p-4">
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colors[color]}`}>{icon}</div>
       <p className="mt-3 text-2xl font-bold text-ink-900">{value}</p>
-      <p className="text-sm text-ink-500">{label}</p>
+      <p className="break-words text-sm text-ink-500">{label}</p>
     </div>
   );
 }
 
 function SetupItem({ to, label, description }) {
   return (
-    <Link to={to} className="flex items-center justify-between rounded-xl bg-white p-3 transition-colors hover:bg-ink-50">
-      <div><p className="text-sm font-semibold text-ink-800">{label}</p><p className="text-xs text-ink-500">{description}</p></div>
-      <ArrowRight size={18} className="text-primary-500" />
+    <Link to={to} className="flex items-center justify-between gap-3 rounded-xl bg-white p-3 transition-colors hover:bg-ink-50">
+      <div className="min-w-0"><p className="text-sm font-semibold text-ink-800">{label}</p><p className="text-xs text-ink-500">{description}</p></div>
+      <ArrowRight size={18} className="shrink-0 text-primary-500" />
     </Link>
   );
 }

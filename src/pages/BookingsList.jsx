@@ -59,20 +59,20 @@ export function BookingsList() {
           {filtered.map((b) => {
             const other = isProvider ? b.customer : b.provider;
             return (
-              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-center gap-4 p-4">
-                <Avatar src={other?.profileImage} name={other?.name ?? 'User'} size="md" />
+              <Link key={b._id} to={`/dashboard/bookings/${b._id}`} className="card-hover group flex items-start gap-3 p-4 sm:items-center sm:gap-4">
+                <Avatar src={other?.profileImage} name={other?.name ?? 'User'} size="md" className="shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                     <h3 className="truncate font-semibold text-ink-900">{other?.name ?? 'Unknown'}</h3>
-                    <StatusBadge status={b.status} />
+                    <div className="shrink-0"><StatusBadge status={b.status} /></div>
                   </div>
-                  <p className="mt-0.5 truncate text-sm text-ink-500">{b.service?.title ?? 'Service'}{b.service && ` · ${formatPrice(Number(b.service.basePrice), b.service.priceUnit)}`}</p>
-                  <div className="mt-1.5 flex items-center gap-3 text-xs text-ink-400">
-                    <span className="flex items-center gap-1"><Calendar size={12} />{formatDateTime(b.scheduledAt)}</span>
-                    <span className="flex items-center gap-1"><MessageSquare size={12} />View chat</span>
+                  <p className="mt-0.5 break-words text-sm text-ink-500">{b.service?.title ?? 'Service'}{b.service && ` · ${formatPrice(Number(b.service.basePrice), b.service.priceUnit)}`}</p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-400">
+                    <span className="flex items-center gap-1"><Calendar size={12} className="shrink-0" />{formatDateTime(b.scheduledAt)}</span>
+                    <span className="flex items-center gap-1"><MessageSquare size={12} className="shrink-0" />View chat</span>
                   </div>
                 </div>
-                <ArrowRight size={16} className="shrink-0 text-ink-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500" />
+                <ArrowRight size={16} className="mt-1 hidden shrink-0 text-ink-300 transition-transform group-hover:translate-x-0.5 group-hover:text-primary-500 sm:mt-0 sm:block" />
               </Link>
             );
           })}

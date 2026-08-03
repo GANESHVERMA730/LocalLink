@@ -34,7 +34,7 @@ export function Register() {
 
   return (
     <div className="flex min-h-screen flex-col bg-ink-50 lg:flex-row">
-      <div className="order-2 flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:order-1">
+      <div className="order-2 flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:order-1">
         <div className="w-full max-w-md">
           <div className="mb-8 lg:hidden">
             <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-ink-900">
@@ -50,7 +50,7 @@ export function Register() {
 
           <div className="mt-6">
             <label className="label">I want to…</label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <RoleCard active={role === 'customer'} onClick={() => setRole('customer')} title="Find services" description="Search and book local pros" />
               <RoleCard active={role === 'provider'} onClick={() => setRole('provider')} title="Offer services" description="List services & get bookings" />
             </div>
@@ -93,7 +93,7 @@ export function Register() {
         </div>
       </div>
 
-      <div className="order-1 relative hidden flex-1 bg-primary-700 lg:order-2 lg:block">
+      <div className="relative order-1 hidden flex-1 bg-primary-700 lg:order-2 lg:block">
         <div className="absolute inset-0 bg-gradient-to-bl from-primary-600 to-primary-900" />
         <div className="relative flex h-full flex-col justify-between p-12">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-white">

@@ -28,8 +28,8 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-white/90 backdrop-blur-md">
-      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to={user ? '/dashboard' : '/'} className="flex items-center gap-2 font-display text-lg font-bold text-ink-900">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+        <Link to={user ? '/dashboard' : '/'} className="flex shrink-0 items-center gap-2 font-display text-lg font-bold text-ink-900">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-white">
             <MapPin size={18} />
           </span>
@@ -37,13 +37,13 @@ export function Navbar() {
         </Link>
 
         {user && (
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden min-w-0 items-center gap-1 lg:flex">
             {links.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     isActive ? 'bg-primary-50 text-primary-700' : 'text-ink-600 hover:bg-ink-100'
                   }`
                 }
@@ -55,7 +55,7 @@ export function Navbar() {
           </div>
         )}
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
           {user ? (
             <>
               <span className="text-sm font-medium text-ink-700 max-w-[120px] truncate">{user.name}</span>
@@ -73,7 +73,7 @@ export function Navbar() {
         </div>
 
         <button
-          className="rounded-lg p-2 text-ink-600 hover:bg-ink-100 md:hidden"
+          className="shrink-0 rounded-lg p-2 text-ink-600 hover:bg-ink-100 lg:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -82,7 +82,7 @@ export function Navbar() {
       </nav>
 
       {open && (
-        <div className="border-t border-ink-100 bg-white px-4 pb-4 pt-2 md:hidden">
+        <div className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-ink-100 bg-white px-4 pb-4 pt-2 sm:px-6 lg:hidden">
           {user && (
             <div className="flex flex-col gap-1">
               {links.map((l) => (

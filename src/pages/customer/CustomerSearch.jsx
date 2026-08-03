@@ -53,14 +53,14 @@ export function CustomerSearch() {
 
         {!loading && !error && results && (
           <div>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-lg font-semibold text-ink-800">{results.length} {results.length === 1 ? 'provider' : 'providers'} found</h2>
-              {lastParams?.locationLabel && <span className="flex items-center gap-1 text-sm text-ink-500"><MapPin size={14} />{lastParams.locationLabel}</span>}
+              {lastParams?.locationLabel && <span className="flex min-w-0 items-center gap-1 text-sm text-ink-500"><MapPin size={14} className="shrink-0" /><span className="truncate">{lastParams.locationLabel}</span></span>}
             </div>
             {results.length === 0 ? (
               <EmptyState icon={<SearchIcon size={24} />} title="No providers found" description="Try widening your search radius, removing filters, or choosing a different location." />
             ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {results.map((r) => <ProviderCard key={r._id} result={r} />)}
               </div>
             )}

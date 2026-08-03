@@ -69,8 +69,8 @@ export function ChatWindow({ bookingId, otherName, otherAvatar }) {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-4">
         {loading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-ink-300" />
@@ -86,10 +86,10 @@ export function ChatWindow({ bookingId, otherName, otherAvatar }) {
             const isMe = senderId === user?._id;
             return (
               <div key={m._id} className={`flex gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
-                {!isMe && <Avatar src={otherAvatar} name={otherName} size="sm" className="mt-1" />}
-                <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col`}>
+                {!isMe && <Avatar src={otherAvatar} name={otherName} size="sm" className="mt-1 shrink-0" />}
+                <div className={`flex min-w-0 max-w-[78%] flex-col sm:max-w-[75%] ${isMe ? 'items-end' : 'items-start'}`}>
                   <div
-                    className={`rounded-2xl px-3.5 py-2.5 text-sm ${
+                    className={`overflow-hidden whitespace-pre-wrap rounded-2xl px-3.5 py-2.5 text-sm [overflow-wrap:anywhere] ${
                       isMe ? 'rounded-br-md bg-primary-600 text-white' : 'rounded-bl-md bg-ink-100 text-ink-800'
                     }`}
                   >
@@ -103,7 +103,7 @@ export function ChatWindow({ bookingId, otherName, otherAvatar }) {
         )}
       </div>
 
-      <form onSubmit={handleSend} className="border-t border-ink-100 p-3">
+      <form onSubmit={handleSend} className="shrink-0 border-t border-ink-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="flex items-end gap-2">
           <textarea
             rows={1}
@@ -115,12 +115,13 @@ export function ChatWindow({ bookingId, otherName, otherAvatar }) {
                 handleSend(e);
               }
             }}
-            className="input resize-none py-2"
+            className="input min-w-0 flex-1 resize-none py-2 text-base sm:text-sm"
             placeholder="Type a message…"
             disabled={sending}
           />
           <button
             type="submit"
+            aria-label="Send message"
             disabled={sending || !text.trim()}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-600 text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
           >

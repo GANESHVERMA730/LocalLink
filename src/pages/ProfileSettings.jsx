@@ -42,10 +42,10 @@ export function ProfileSettings() {
       <form onSubmit={handleSave} className="space-y-6">
         {error && <ErrorBanner message={error} />}
         {saved && <div className="flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-700"><Check size={16} />Profile saved.</div>}
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5">
           <div className="mb-4 flex items-center gap-4">
-            <Avatar src={user?.profileImage} name={name || 'User'} size="lg" />
-            <div><p className="font-semibold text-ink-900">{user?.email}</p><p className="text-sm text-ink-400 capitalize">{user?.role}</p></div>
+            <Avatar src={user?.profileImage} name={name || 'User'} size="lg" className="shrink-0" />
+            <div className="min-w-0"><p className="truncate font-semibold text-ink-900">{user?.email}</p><p className="text-sm capitalize text-ink-400">{user?.role}</p></div>
           </div>
           <div className="space-y-4">
             <div>
@@ -58,8 +58,8 @@ export function ProfileSettings() {
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
-          <Button type="submit" loading={saving}>{!saving && <Save size={16} />}Save changes</Button>
+        <div className="flex justify-stretch sm:justify-end">
+          <Button type="submit" loading={saving} className="w-full sm:w-auto">{!saving && <Save size={16} />}Save changes</Button>
         </div>
       </form>
     </div>

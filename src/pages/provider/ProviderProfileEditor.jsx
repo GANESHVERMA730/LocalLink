@@ -69,7 +69,7 @@ export function ProviderProfileEditor() {
         {error && <ErrorBanner message={error} />}
         {saved && <div className="flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-700"><Check size={16} />Profile saved successfully.</div>}
 
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5">
           <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink-700"><User size={16} />Basic information</h2>
           <div className="space-y-4">
             <div><label className="label" htmlFor="name">Display name</label><input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required /></div>
@@ -77,7 +77,7 @@ export function ProviderProfileEditor() {
           </div>
         </div>
 
-        <div className="card p-5">
+        <div className="card p-4 sm:p-5">
           <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink-700"><MapPin size={16} />Provider details</h2>
           <div className="space-y-4">
             <div><label className="label" htmlFor="bio">Bio</label><textarea id="bio" rows={4} className="input resize-none" value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell customers about your experience, specialties, and what makes you reliable." /></div>
@@ -93,8 +93,8 @@ export function ProviderProfileEditor() {
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button type="submit" loading={saving}>{!saving && <Save size={16} />}Save profile</Button>
+        <div className="flex justify-stretch sm:justify-end">
+          <Button type="submit" loading={saving} className="w-full sm:w-auto">{!saving && <Save size={16} />}Save profile</Button>
         </div>
       </form>
     </div>

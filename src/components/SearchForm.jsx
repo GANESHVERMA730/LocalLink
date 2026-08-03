@@ -59,27 +59,28 @@ export function SearchForm({ onSearch, loading }) {
   };
 
   return (
-    <div className="card p-5">
+    <div className="card p-4 sm:p-5">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="label">Location</label>
+          <label className="label" htmlFor="location">Location</label>
           <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
+            <div className="relative min-w-0 flex-1">
               <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
               <input
+                id="location"
                 type="text"
                 value={manualAddress || locationLabel}
                 onChange={(e) => { setManualAddress(e.target.value); setLocationLabel(''); }}
                 className="input pl-10"
-                placeholder="Enter lat,lng (e.g. 40.71,-74.00) or use your location"
+                placeholder="Enter lat,lng (e.g. 40.71,-74.00)"
               />
             </div>
-            <Button type="button" variant="secondary" onClick={useMyLocation} loading={geoLoading}>
+            <Button type="button" variant="secondary" onClick={useMyLocation} loading={geoLoading} className="w-full shrink-0 sm:w-auto">
               {!geoLoading && <MapPin size={16} />}
               Use my location
             </Button>
           </div>
-          {lat !== 0 && <p className="mt-1.5 text-xs text-ink-400">{locationLabel || 'Location set'} · {lat.toFixed(4)}, {lng.toFixed(4)}</p>}
+          {lat !== 0 && <p className="mt-1.5 break-words text-xs text-ink-400">{locationLabel || 'Location set'} · {lat.toFixed(4)}, {lng.toFixed(4)}</p>}
         </div>
 
         <div>
@@ -87,8 +88,8 @@ export function SearchForm({ onSearch, loading }) {
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => setCategory('')} className={`badge px-3 py-1.5 text-sm transition-colors ${!category ? 'bg-primary-600 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>All</button>
             {SERVICE_CATEGORIES.map((cat) => (
-              <button key={cat.value} type="button" onClick={() => setCategory(cat.value)} className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${category === cat.value ? 'bg-primary-600 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
-                <CategoryIcon name={cat.icon} className="h-4 w-4" />
+              <button key={cat.value} type="button" onClick={() => setCategory(cat.value)} className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${category === cat.value ? 'bg-primary-600 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
+                <CategoryIcon name={cat.icon} className="h-4 w-4 shrink-0" />
                 {cat.label}
               </button>
             ))}
@@ -96,11 +97,11 @@ export function SearchForm({ onSearch, loading }) {
         </div>
 
         <div>
-          <div className="flex items-center justify-between">
-            <label className="label mb-0">Search radius</label>
-            <span className="text-sm font-semibold text-primary-700">{maxDistance < 1000 ? `${maxDistance} m` : `${(maxDistance / 1000).toFixed(0)} km`}</span>
+          <div className="flex items-center justify-between gap-3">
+            <label className="label mb-0" htmlFor="radius">Search radius</label>
+            <span className="shrink-0 text-sm font-semibold text-primary-700">{maxDistance < 1000 ? `${maxDistance} m` : `${(maxDistance / 1000).toFixed(0)} km`}</span>
           </div>
-          <input type="range" min={1000} max={50000} step={1000} value={maxDistance} onChange={(e) => setMaxDistance(Number(e.target.value))} className="mt-2 w-full" />
+          <input id="radius" type="range" min={1000} max={50000} step={1000} value={maxDistance} onChange={(e) => setMaxDistance(Number(e.target.value))} className="mt-2 w-full" />
         </div>
 
         <button type="button" onClick={() => setShowFilters((v) => !v)} className="flex items-center gap-2 text-sm font-medium text-ink-600 hover:text-ink-800">

@@ -71,17 +71,17 @@ export function BookingDetail() {
       {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div className="grid gap-6 lg:grid-cols-5">
-        <div className="space-y-4 lg:col-span-2">
-          <div className="card p-5">
-            <div className="flex items-center justify-between">
+        <div className="min-w-0 space-y-4 lg:col-span-2">
+          <div className="card p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h1 className="text-lg font-bold text-ink-900">Booking details</h1>
               <StatusBadge status={booking.status} />
             </div>
             <div className="mt-4 flex items-center gap-3 rounded-xl bg-ink-50 p-3">
-              <Avatar src={other?.profileImage} name={other?.name ?? 'User'} size="md" />
+              <Avatar src={other?.profileImage} name={other?.name ?? 'User'} size="md" className="shrink-0" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-ink-900">{other?.name ?? 'Unknown'}</p>
-                <p className="text-xs text-ink-400">{isProvider ? 'Customer' : 'Provider'}{other?.phone && ` · ${other.phone}`}</p>
+                <p className="truncate text-xs text-ink-400">{isProvider ? 'Customer' : 'Provider'}{other?.phone && ` · ${other.phone}`}</p>
               </div>
             </div>
             <div className="mt-4 space-y-2.5 text-sm">
@@ -90,13 +90,13 @@ export function BookingDetail() {
               <Row label="Scheduled" value={<span className="flex items-center gap-1.5"><Calendar size={14} className="text-ink-400" />{formatDateTime(booking.scheduledAt)}</span>} />
               <Row label="Duration" value={<span className="flex items-center gap-1.5"><Clock size={14} className="text-ink-400" />{booking.durationMinutes} min</span>} />
             </div>
-            {booking.customerNotes && <div className="mt-4"><p className="text-xs font-medium text-ink-500">Customer notes</p><p className="mt-1 rounded-lg bg-ink-50 p-3 text-sm text-ink-700">{booking.customerNotes}</p></div>}
+            {booking.customerNotes && <div className="mt-4"><p className="text-xs font-medium text-ink-500">Customer notes</p><p className="mt-1 rounded-lg bg-ink-50 p-3 text-sm text-ink-700 [overflow-wrap:anywhere]">{booking.customerNotes}</p></div>}
           </div>
 
           {(canAccept || canReject || canComplete || canCancel) && (
-            <div className="card p-5">
+            <div className="card p-4 sm:p-5">
               <h2 className="mb-3 text-sm font-semibold text-ink-700">Actions</h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {canAccept && <Button onClick={() => handleStatusChange('accepted')} loading={acting === 'accepted'}><Check size={16} />Accept</Button>}
                 {canReject && <Button variant="danger" onClick={() => handleStatusChange('rejected')} loading={acting === 'rejected'}><X size={16} />Reject</Button>}
                 {canComplete && <Button variant="secondary" onClick={() => handleStatusChange('completed')} loading={acting === 'completed'}><Check size={16} />Mark completed</Button>}
@@ -106,11 +106,11 @@ export function BookingDetail() {
           )}
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="card flex h-[600px] flex-col overflow-hidden">
-            <div className="flex items-center gap-3 border-b border-ink-100 px-4 py-3">
-              <MessageSquare size={18} className="text-primary-600" />
-              <div className="flex-1"><p className="text-sm font-semibold text-ink-900">Chat with {other?.name ?? 'provider'}</p><p className="text-xs text-ink-400">Messages are private to this booking</p></div>
+        <div className="min-w-0 lg:col-span-3">
+          <div className="card flex h-[70vh] min-h-[420px] flex-col overflow-hidden lg:h-[600px]">
+            <div className="flex shrink-0 items-center gap-3 border-b border-ink-100 px-4 py-3">
+              <MessageSquare size={18} className="shrink-0 text-primary-600" />
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink-900">Chat with {other?.name ?? 'provider'}</p><p className="truncate text-xs text-ink-400">Messages are private to this booking</p></div>
             </div>
             <ChatWindow bookingId={booking._id} otherName={other?.name ?? 'User'} otherAvatar={other?.profileImage} />
           </div>
@@ -121,5 +121,5 @@ export function BookingDetail() {
 }
 
 function Row({ label, value }) {
-  return <div className="flex items-center justify-between"><span className="text-ink-500">{label}</span><span className="font-medium text-ink-800">{value}</span></div>;
+  return <div className="flex items-start justify-between gap-3"><span className="shrink-0 text-ink-500">{label}</span><span className="min-w-0 text-right font-medium text-ink-800 [overflow-wrap:anywhere]">{value}</span></div>;
 }
