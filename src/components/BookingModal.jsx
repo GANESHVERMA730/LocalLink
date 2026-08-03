@@ -1,21 +1,13 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { X, Calendar, Clock, Check } from 'lucide-react';
 import { Button, ErrorBanner } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
 import { createBooking } from '@/lib/queries';
 import { formatPrice, toLocalInputValue, fromLocalInputValue } from '@/lib/format';
-import { SERVICE_CATEGORIES } from '@/types/db';
-import type { Service } from '@/types/db';
+import { SERVICE_CATEGORIES } from '@/constants/categories';
+import PropTypes from 'prop-types';
 
-interface Props {
-  service: Service;
-  providerId: string;
-  providerName: string;
-  onClose: () => void;
-  onBooked: (bookingId: string) => void;
-}
-
-export function BookingModal({ service, providerId, providerName, onClose, onBooked }: Props) {
+export function BookingModal({ service, providerId, providerName, onClose, onBooked }) {
   const [scheduledAt, setScheduledAt] = useState(() => {
     const d = new Date();
     d.setHours(d.getHours() + 2, 0, 0, 0);
@@ -24,10 +16,10 @@ export function BookingModal({ service, providerId, providerName, onClose, onBoo
   const [duration, setDuration] = useState(60);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const meta = SERVICE_CATEGORIES.find((c) => c.value === service.category);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -88,3 +80,11 @@ export function BookingModal({ service, providerId, providerName, onClose, onBoo
     </div>
   );
 }
+
+BookingModal.propTypes = {
+  service: PropTypes.object.isRequired,
+  providerId: PropTypes.string.isRequired,
+  providerName: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onBooked: PropTypes.func.isRequired,
+};

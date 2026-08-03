@@ -1,15 +1,15 @@
-export function formatDistance(meters: number): string {
+export function formatDistance(meters) {
   if (meters < 1000) return `${Math.round(meters)} m`;
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
-export function formatPrice(price: number, unit: string): string {
+export function formatPrice(price, unit) {
   const value = Number(price) || 0;
   const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2);
   return `$${formatted} ${unit}`;
 }
 
-export function formatDateTime(iso: string): string {
+export function formatDateTime(iso) {
   const d = new Date(iso);
   return d.toLocaleString(undefined, {
     weekday: 'short',
@@ -20,7 +20,7 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-export function formatDate(iso: string): string {
+export function formatDate(iso) {
   return new Date(iso).toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
@@ -29,14 +29,14 @@ export function formatDate(iso: string): string {
   });
 }
 
-export function formatTime(iso: string): string {
+export function formatTime(iso) {
   return new Date(iso).toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
   });
 }
 
-export function formatRelativeTime(iso: string): string {
+export function formatRelativeTime(iso) {
   const now = Date.now();
   const then = new Date(iso).getTime();
   const diffMs = now - then;
@@ -50,13 +50,13 @@ export function formatRelativeTime(iso: string): string {
   return formatDate(iso);
 }
 
-export function toLocalInputValue(iso: string): string {
+export function toLocalInputValue(iso) {
   const d = new Date(iso);
   const off = d.getTimezoneOffset();
   const local = new Date(d.getTime() - off * 60000);
   return local.toISOString().slice(0, 16);
 }
 
-export function fromLocalInputValue(value: string): string {
+export function fromLocalInputValue(value) {
   return new Date(value).toISOString();
 }

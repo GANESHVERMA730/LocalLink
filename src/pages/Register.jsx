@@ -1,9 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Mail, Lock, User, Phone, ArrowRight, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button, ErrorBanner } from '@/components/ui';
-import type { Role } from '@/types/db';
 
 export function Register() {
   const { signUp } = useAuth();
@@ -12,11 +11,11 @@ export function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<Role>('customer');
-  const [error, setError] = useState<string | null>(null);
+  const [role, setRole] = useState('customer');
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     if (password.length < 6) {
@@ -120,7 +119,7 @@ export function Register() {
   );
 }
 
-function RoleCard({ active, onClick, title, description }: { active: boolean; onClick: () => void; title: string; description: string }) {
+function RoleCard({ active, onClick, title, description }) {
   return (
     <button
       type="button"

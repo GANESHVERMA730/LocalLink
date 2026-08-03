@@ -15,7 +15,6 @@ import { ServicesManager } from '@/pages/provider/ServicesManager';
 import { AvailabilityEditor } from '@/pages/provider/AvailabilityEditor';
 import { ProviderDashboard } from '@/pages/provider/ProviderDashboard';
 import { FullPageSpinner } from '@/components/ui';
-import type { Role } from '@/types/db';
 
 function AppLayout() {
   return (
@@ -28,7 +27,7 @@ function AppLayout() {
   );
 }
 
-function RoleRoute({ role }: { role: Role }) {
+function RoleRoute({ role }) {
   const { user, loading } = useAuth();
   if (loading) return <FullPageSpinner />;
   if (user?.role !== role) return <Navigate to="/dashboard" replace />;

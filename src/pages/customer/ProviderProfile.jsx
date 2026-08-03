@@ -2,21 +2,20 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
 import { fetchProviderProfile, fetchAvailabilitiesByProvider } from '@/lib/queries';
-import type { ProviderProfile, Service, Availability, User } from '@/types/db';
 import { Avatar, StarRating, VerifiedBadge, Button, Spinner, EmptyState } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
-import { SERVICE_CATEGORIES, DAYS_OF_WEEK } from '@/types/db';
+import { SERVICE_CATEGORIES, DAYS_OF_WEEK } from '@/constants/categories';
 import { formatPrice } from '@/lib/format';
 import { BookingModal } from '@/components/BookingModal';
 
 export function ProviderProfilePage() {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId } = useParams();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<(ProviderProfile & { user: User }) | null>(null);
-  const [avails, setAvails] = useState<Availability[]>([]);
+  const [profile, setProfile] = useState(null);
+  const [avails, setAvails] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [bookingService, setBookingService] = useState<Service | null>(null);
+  const [error, setError] = useState(null);
+  const [bookingService, setBookingService] = useState(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -34,10 +33,10 @@ export function ProviderProfilePage() {
   if (loading) return <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6"><Spinner className="h-8 w-8 mx-auto mt-20" /></div>;
   if (error || !profile) return <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6"><EmptyState icon={<MapPin size={24} />} title="Provider not found" description={error ?? undefined} action={<Button variant="secondary" onClick={() => navigate('/dashboard/search')}>Back to search</Button>} /></div>;
 
-  const services = (profile.services as Service[]).filter((s) => s.isActive);
-  const availByDay: Record<number, Availability[]> = {};
+  const services = profile.services.filter((s) => s.isActive);
+  const availByDay = {};
   avails.forEach((a) => { if (!availByDay[a.dayOfWeek]) availByDay[a.dayOfWeek] = []; availByDay[a.dayOfWeek].push(a); });
-  const providerUser = profile.user as User;
+  const providerUser = profile.user;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
@@ -114,7 +113,7 @@ export function ProviderProfilePage() {
       )}
 
       {bookingService && (
-        <BookingModal service={bookingService} providerId={profile.user as unknown as string} providerName={providerUser.name} onClose={() => setBookingService(null)} onBooked={(bookingId) => { setBookingService(null); navigate(`/dashboard/bookings/${bookingId}`); }} />
+        <BookingModal service={bookingService} providerId={profile.user} providerName={providerUser.name} onClose={() => setBookingService(null)} onBooked={(bookingId) => { setBookingService(null); navigate(`/dashboard/bookings/${bookingId}`); }} />
       )}
     </div>
   );

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, MapPin, Search, Calendar, Settings, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { Avatar } from '@/components/ui';
 
 export function Navbar() {
   const { user, signOut } = useAuth();

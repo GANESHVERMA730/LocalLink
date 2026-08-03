@@ -2,24 +2,10 @@ import { useState } from 'react';
 import { MapPin, Search, SlidersHorizontal, X } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
-import { SERVICE_CATEGORIES } from '@/types/db';
+import { SERVICE_CATEGORIES } from '@/constants/categories';
+import PropTypes from 'prop-types';
 
-export interface SearchParams {
-  lat: number;
-  lng: number;
-  maxDistance: number;
-  category?: string;
-  minRating?: number;
-  date?: string;
-  locationLabel?: string;
-}
-
-interface Props {
-  onSearch: (params: SearchParams) => void;
-  loading?: boolean;
-}
-
-export function SearchForm({ onSearch, loading }: Props) {
+export function SearchForm({ onSearch, loading }) {
   const [lat, setLat] = useState(0);
   const [lng, setLng] = useState(0);
   const [locationLabel, setLocationLabel] = useState('');
@@ -47,7 +33,7 @@ export function SearchForm({ onSearch, loading }: Props) {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (lat === 0 && lng === 0) {
       // For dev/testing: allow manual lat/lng entry via the address field as "lat,lng"
@@ -148,3 +134,8 @@ export function SearchForm({ onSearch, loading }: Props) {
     </div>
   );
 }
+
+SearchForm.propTypes = {
+  onSearch: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+};

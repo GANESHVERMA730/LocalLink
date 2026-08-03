@@ -1,9 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import PropTypes from 'prop-types';
 import { useAuth } from '@/context/AuthContext';
 import { FullPageSpinner } from '@/components/ui';
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
 
@@ -12,3 +12,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node,
+};

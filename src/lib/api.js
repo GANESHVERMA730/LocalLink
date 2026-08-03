@@ -31,7 +31,7 @@ api.interceptors.response.use(
   },
 );
 
-export function setAuth(token: string, user: unknown) {
+export function setAuth(token, user) {
   localStorage.setItem('locallink_token', token);
   localStorage.setItem('locallink_user', JSON.stringify(user));
 }
@@ -41,16 +41,16 @@ export function clearAuth() {
   localStorage.removeItem('locallink_user');
 }
 
-export function getStoredUser<T>(): T | null {
+export function getStoredUser() {
   const raw = localStorage.getItem('locallink_user');
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as T;
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-export function getToken(): string | null {
+export function getToken() {
   return localStorage.getItem('locallink_token');
 }

@@ -4,15 +4,14 @@ import { Calendar, Inbox, CheckCircle2, Briefcase, ArrowRight, TrendingUp } from
 import { useAuth } from '@/context/AuthContext';
 import { fetchBookings, fetchMyServices, fetchMyAvailabilities } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
-import type { BookingWithDetails, Service, Availability } from '@/types/db';
 import { StatusBadge, Avatar, EmptyState, Spinner, PageHeader } from '@/components/ui';
 import { formatDateTime } from '@/lib/format';
 
 export function ProviderDashboard() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [avails, setAvails] = useState<Availability[]>([]);
+  const [bookings, setBookings] = useState([]);
+  const [services, setServices] = useState([]);
+  const [avails, setAvails] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -109,8 +108,8 @@ export function ProviderDashboard() {
   );
 }
 
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: number; color: string }) {
-  const colors: Record<string, string> = { amber: 'bg-amber-50 text-amber-600', primary: 'bg-primary-50 text-primary-600', ink: 'bg-ink-100 text-ink-600', accent: 'bg-accent-50 text-accent-600' };
+function StatCard({ icon, label, value, color }) {
+  const colors = { amber: 'bg-amber-50 text-amber-600', primary: 'bg-primary-50 text-primary-600', ink: 'bg-ink-100 text-ink-600', accent: 'bg-accent-50 text-accent-600' };
   return (
     <div className="card p-4">
       <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${colors[color]}`}>{icon}</div>
@@ -120,7 +119,7 @@ function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label:
   );
 }
 
-function SetupItem({ to, label, description }: { to: string; label: string; description: string }) {
+function SetupItem({ to, label, description }) {
   return (
     <Link to={to} className="flex items-center justify-between rounded-xl bg-white p-3 transition-colors hover:bg-ink-50">
       <div><p className="text-sm font-semibold text-ink-800">{label}</p><p className="text-xs text-ink-500">{description}</p></div>

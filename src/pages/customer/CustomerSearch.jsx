@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { Search as SearchIcon, MapPin } from 'lucide-react';
-import { SearchForm, type SearchParams } from '@/components/SearchForm';
+import { SearchForm } from '@/components/SearchForm';
 import { ProviderCard } from '@/components/ProviderCard';
 import { EmptyState, Spinner } from '@/components/ui';
 import { searchProviders } from '@/lib/queries';
-import type { SearchResultProvider } from '@/types/db';
 
 export function CustomerSearch() {
-  const [results, setResults] = useState<SearchResultProvider[] | null>(null);
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lastParams, setLastParams] = useState<SearchParams | null>(null);
+  const [error, setError] = useState(null);
+  const [lastParams, setLastParams] = useState(null);
 
-  const handleSearch = async (params: SearchParams) => {
+  const handleSearch = async (params) => {
     setLastParams(params);
     setLoading(true);
     setError(null);

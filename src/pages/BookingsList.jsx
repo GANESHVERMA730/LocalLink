@@ -4,13 +4,12 @@ import { Calendar, MessageSquare, ArrowRight, Inbox } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchBookings } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
-import type { BookingWithDetails } from '@/types/db';
-import { Avatar, StatusBadge, EmptyState, Spinner, PageHeader, Button } from '@/components/ui';
+import { Avatar, StatusBadge, EmptyState, Spinner, PageHeader } from '@/components/ui';
 import { formatDateTime, formatPrice } from '@/lib/format';
 
 export function BookingsList() {
   const { user } = useAuth();
-  const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 

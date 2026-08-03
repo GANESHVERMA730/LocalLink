@@ -4,19 +4,18 @@ import { ArrowLeft, Calendar, Clock, Check, X, MessageSquare } from 'lucide-reac
 import { useAuth } from '@/context/AuthContext';
 import { fetchBooking, updateBookingStatus } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
-import type { BookingWithDetails } from '@/types/db';
 import { Avatar, StatusBadge, Spinner, EmptyState, Button } from '@/components/ui';
 import { ChatWindow } from '@/components/ChatWindow';
 import { formatDateTime, formatPrice } from '@/lib/format';
 
 export function BookingDetail() {
-  const { bookingId } = useParams<{ bookingId: string }>();
+  const { bookingId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [booking, setBooking] = useState<BookingWithDetails | null>(null);
+  const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [acting, setActing] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [acting, setActing] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
     if (!bookingId) return;
@@ -33,13 +32,13 @@ export function BookingDetail() {
   useEffect(() => {
     load();
     const unsub = onBookingUpdated((updated) => {
-      const b = updated as BookingWithDetails;
+      const b = updated;
       if (b._id === bookingId) setBooking(b);
     });
     return () => { if (unsub) unsub(); };
   }, [bookingId, load]);
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus) => {
     if (!bookingId) return;
     setActing(newStatus);
     setError(null);
@@ -57,7 +56,7 @@ export function BookingDetail() {
   if (error || !booking) return <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6"><EmptyState icon={<Calendar size={24} />} title="Booking not found" description={error ?? undefined} action={<Button variant="secondary" onClick={() => navigate('/dashboard/bookings')}>Back to bookings</Button>} /></div>;
 
   const isProvider = user?.role === 'provider';
-  const isCustomer = user?._id === booking.customer._id || user?._id === (booking.customer as unknown as string);
+  const isCustomer = user?._id === booking.customer._id || user?._id === booking.customer;
   const other = isProvider ? booking.customer : booking.provider;
 
   const canAccept = isProvider && booking.status === 'pending';
@@ -121,6 +120,6 @@ export function BookingDetail() {
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }) {
   return <div className="flex items-center justify-between"><span className="text-ink-500">{label}</span><span className="font-medium text-ink-800">{value}</span></div>;
 }

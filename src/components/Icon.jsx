@@ -11,10 +11,9 @@ import {
   Scissors,
   PartyPopper,
   Briefcase,
-  type LucideIcon,
 } from 'lucide-react';
 
-const ICONS: Record<string, LucideIcon> = {
+const ICONS = {
   Wrench,
   Zap,
   GraduationCap,
@@ -29,7 +28,7 @@ const ICONS: Record<string, LucideIcon> = {
   Briefcase,
 };
 
-export function CategoryIcon({ name, className }: { name: string; className?: string }) {
+export function CategoryIcon({ name, className }) {
   const Icon = ICONS[name] ?? Briefcase;
   return <Icon className={className} />;
 }

@@ -1,30 +1,22 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Send, Loader2 } from 'lucide-react';
 import { fetchMessages } from '@/lib/queries';
 import { joinBookingRoom, sendSocketMessage, onNewMessage, getSocket } from '@/lib/socket';
-import type { MessageWithSender } from '@/types/db';
+import PropTypes from 'prop-types';
 import { Avatar } from '@/components/ui';
 import { formatRelativeTime } from '@/lib/format';
 import { useAuth } from '@/context/AuthContext';
 
-export function ChatWindow({
-  bookingId,
-  otherName,
-  otherAvatar,
-}: {
-  bookingId: string;
-  otherName: string;
-  otherAvatar?: string;
-}) {
+export function ChatWindow({ bookingId, otherName, otherAvatar }) {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<MessageWithSender[]>([]);
+  const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-    let unsub: (() => void) | undefined;
+    let unsub;
 
     async function init() {
       try {
@@ -38,7 +30,7 @@ export function ChatWindow({
 
       joinBookingRoom(bookingId);
       unsub = onNewMessage((msg) => {
-        const message = msg as MessageWithSender;
+        const message = msg;
         if (message.booking === bookingId) {
           setMessages((prev) => (prev.some((m) => m._id === message._id) ? prev : [...prev, message]));
         }
@@ -57,7 +49,7 @@ export function ChatWindow({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = async (e: FormEvent) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     const trimmed = text.trim();
     if (!trimmed) return;
@@ -66,7 +58,7 @@ export function ChatWindow({
     try {
       const response = await sendSocketMessage(bookingId, trimmed);
       if (response.success && response.message) {
-        const msg = response.message as MessageWithSender;
+        const msg = response.message;
         setMessages((prev) => (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]));
       }
     } catch {
@@ -139,3 +131,9 @@ export function ChatWindow({
     </div>
   );
 }
+
+ChatWindow.propTypes = {
+  bookingId: PropTypes.string.isRequired,
+  otherName: PropTypes.string.isRequired,
+  otherAvatar: PropTypes.string,
+};

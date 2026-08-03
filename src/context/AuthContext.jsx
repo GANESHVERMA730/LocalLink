@@ -1,27 +1,18 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { api, setAuth, clearAuth, getStoredUser, getToken } from '@/lib/api';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { setAuth, clearAuth, getStoredUser, getToken } from '@/lib/api';
 import { registerUser, loginUser, fetchMe } from '@/lib/queries';
 import { disconnectSocket } from '@/lib/socket';
-import type { User, Role } from '@/types/db';
+import PropTypes from 'prop-types';
 
-interface AuthContextValue {
-  user: User | null;
-  loading: boolean;
-  signUp: (params: { email: string; password: string; name: string; role: Role; phone?: string }) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => void;
-  refreshUser: () => Promise<void>;
-}
+const AuthContext = createContext(undefined);
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = getToken();
-    const stored = getStoredUser<User>();
+    const stored = getStoredUser();
     if (token && stored) {
       setUser(stored);
       // Verify token is still valid by fetching /users/me
@@ -37,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signUp: AuthContextValue['signUp'] = async ({ email, password, name, role, phone }) => {
+  const signUp = async ({ email, password, name, role, phone }) => {
     try {
       const { token, user: newUser } = await registerUser({ email, password, name, role, phone });
       setAuth(token, newUser);
@@ -48,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signIn: AuthContextValue['signIn'] = async (email, password) => {
+  const signIn = async (email, password) => {
     try {
       const { token, user: newUser } = await loginUser(email, password);
       setAuth(token, newUser);
@@ -69,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const fresh = await fetchMe();
       setUser(fresh);
-      setAuth(getToken()!, fresh);
+      setAuth(getToken(), fresh);
     } catch {
       // ignore
     }
@@ -82,9 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function mapAuthError(err: unknown): string {
-  const status = (err as { response?: { status?: number } })?.response?.status;
-  const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+AuthProvider.propTypes = {
+  children: PropTypes.node,
+};
+
+function mapAuthError(err) {
+  const status = err?.response?.status;
+  const message = err?.response?.data?.error;
   if (status === 401) return message || 'Incorrect email or password.';
   if (status === 409) return message || 'An account with that email already exists.';
   if (message) return message;

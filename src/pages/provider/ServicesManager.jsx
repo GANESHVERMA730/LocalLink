@@ -1,32 +1,21 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchMyServices, createService, updateService, deleteService } from '@/lib/queries';
-import type { Service } from '@/types/db';
-import { SERVICE_CATEGORIES, PRICE_UNITS } from '@/types/db';
+import { SERVICE_CATEGORIES, PRICE_UNITS } from '@/constants/categories';
 import { Button, Spinner, EmptyState, PageHeader, ErrorBanner } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
 import { formatPrice } from '@/lib/format';
 
-interface EditState {
-  id?: string;
-  title: string;
-  category: string;
-  description: string;
-  basePrice: string;
-  priceUnit: string;
-  isActive: boolean;
-}
-
-const EMPTY: EditState = { title: '', category: 'plumber', description: '', basePrice: '', priceUnit: 'per hour', isActive: true };
+const EMPTY = { title: '', category: 'plumber', description: '', basePrice: '', priceUnit: 'per hour', isActive: true };
 
 export function ServicesManager() {
   const { user } = useAuth();
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState<EditState | null>(null);
+  const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const load = async () => {
     try { setServices(await fetchMyServices()); } catch { /* ignore */ } finally { setLoading(false); }
@@ -34,7 +23,7 @@ export function ServicesManager() {
 
   useEffect(() => { load(); }, [user]);
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!editing) return;
     setSaving(true);
@@ -48,7 +37,7 @@ export function ServicesManager() {
     } catch { setError('Could not save the service. Please try again.'); } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id) => {
     if (!confirm('Delete this service? This cannot be undone.')) return;
     try { await deleteService(id); await load(); } catch { setError('Could not delete the service.'); }
   };

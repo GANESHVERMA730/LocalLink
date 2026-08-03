@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Mail, Lock, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -10,12 +10,12 @@ export function Login() {
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const from = (location.state as { from?: string } | null)?.from ?? '/dashboard';
+  const from = location.state?.from ?? '/dashboard';
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -55,7 +55,7 @@ export function Login() {
           </div>
           <h1 className="text-2xl font-bold text-ink-900">Sign in</h1>
           <p className="mt-1 text-sm text-ink-500">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link to="/register" className="font-semibold text-primary-600 hover:text-primary-700">Create one</Link>
           </p>
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">

@@ -1,17 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { MapPin, Save, Check, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchMyProviderProfile, updateProviderProfile, updateMe } from '@/lib/queries';
-import type { ProviderProfile } from '@/types/db';
 import { Button, Spinner, PageHeader, ErrorBanner } from '@/components/ui';
 
 export function ProviderProfileEditor() {
   const { user, refreshUser } = useAuth();
-  const [profile, setProfile] = useState<ProviderProfile | null>(null);
+  const [, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -37,7 +36,7 @@ export function ProviderProfileEditor() {
       .finally(() => setLoading(false));
   }, [user]);
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
@@ -48,7 +47,7 @@ export function ProviderProfileEditor() {
       await refreshUser();
       const latNum = parseFloat(lat);
       const lngNum = parseFloat(lng);
-      const patch: { bio?: string; address?: string; city?: string; location?: { type: 'Point'; coordinates: [number, number] } } = { bio, address, city };
+      const patch = { bio, address, city };
       if (!isNaN(latNum) && !isNaN(lngNum)) patch.location = { type: 'Point', coordinates: [lngNum, latNum] };
       const updated = await updateProviderProfile(patch);
       setProfile(updated);

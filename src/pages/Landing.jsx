@@ -13,7 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { CategoryIcon } from '@/components/Icon';
-import { SERVICE_CATEGORIES } from '@/types/db';
+import { SERVICE_CATEGORIES } from '@/constants/categories';
 
 export function Landing() {
   return (
@@ -204,7 +204,7 @@ export function Landing() {
   );
 }
 
-function Step({ icon, step, title, description }: { icon: React.ReactNode; step: string; title: string; description: string }) {
+function Step({ icon, step, title, description }) {
   return (
     <div className="relative rounded-2xl bg-white p-8 shadow-card">
       <div className="absolute right-6 top-6 text-4xl font-bold text-ink-100">{step}</div>
@@ -217,7 +217,7 @@ function Step({ icon, step, title, description }: { icon: React.ReactNode; step:
   );
 }
 
-function Feature({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function Feature({ icon, title, description }) {
   return (
     <div className="flex gap-4">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600">

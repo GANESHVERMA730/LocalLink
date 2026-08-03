@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { User } from '../models/User.js';
 import { auth } from '../middleware/auth.js';
 
 const router = Router();

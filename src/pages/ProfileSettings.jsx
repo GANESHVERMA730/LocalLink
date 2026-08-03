@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Save, User, Phone, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { updateMe } from '@/lib/queries';
@@ -10,14 +10,14 @@ export function ProfileSettings() {
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) { setName(user.name); setPhone(user.phone); setLoading(false); }
   }, [user]);
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError(null);

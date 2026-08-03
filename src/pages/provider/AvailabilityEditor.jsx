@@ -2,17 +2,16 @@ import { useEffect, useState } from 'react';
 import { Plus, Trash2, Clock, Calendar, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchMyAvailabilities, createAvailability, deleteAvailability } from '@/lib/queries';
-import type { Availability } from '@/types/db';
-import { DAYS_OF_WEEK } from '@/types/db';
+import { DAYS_OF_WEEK } from '@/constants/categories';
 import { Button, Spinner, EmptyState, PageHeader, ErrorBanner } from '@/components/ui';
 
 export function AvailabilityEditor() {
   const { user } = useAuth();
-  const [slots, setSlots] = useState<Availability[]>([]);
+  const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState<{ dayOfWeek: number; startTime: string; endTime: string } | null>(null);
+  const [adding, setAdding] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const load = async () => {
     try { setSlots(await fetchMyAvailabilities()); } catch { /* ignore */ } finally { setLoading(false); }
@@ -28,11 +27,11 @@ export function AvailabilityEditor() {
     try { await createAvailability(adding); setAdding(null); await load(); } catch { setError('Could not add this slot.'); } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id) => {
     try { await deleteAvailability(id); await load(); } catch { setError('Could not remove this slot.'); }
   };
 
-  const slotsByDay = (day: number) => slots.filter((s) => s.dayOfWeek === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const slotsByDay = (day) => slots.filter((s) => s.dayOfWeek === day).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   if (loading) return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6"><Spinner className="h-8 w-8 mx-auto mt-20" /></div>;
 

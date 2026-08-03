@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight } from 'lucide-react';
-import type { SearchResultProvider } from '@/types/db';
-import { SERVICE_CATEGORIES } from '@/types/db';
+import PropTypes from 'prop-types';
+import { SERVICE_CATEGORIES } from '@/constants/categories';
 import { Avatar, StarRating, VerifiedBadge } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
 import { formatDistance, formatPrice } from '@/lib/format';
 
 const SERVICE_META = Object.fromEntries(SERVICE_CATEGORIES.map((c) => [c.value, c]));
 
-export function ProviderCard({ result }: { result: SearchResultProvider }) {
+export function ProviderCard({ result }) {
   const categories = Array.from(new Set(result.services.map((s) => s.category)));
   const userId = typeof result.user === 'object' ? result.user._id : result.user;
   const userName = typeof result.user === 'object' ? result.user.name : 'Provider';
@@ -52,3 +52,7 @@ export function ProviderCard({ result }: { result: SearchResultProvider }) {
     </Link>
   );
 }
+
+ProviderCard.propTypes = {
+  result: PropTypes.object.isRequired,
+};
