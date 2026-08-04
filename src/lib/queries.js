@@ -34,6 +34,17 @@ export async function updateMe(patch) {
   return extractOne(res, 'user');
 }
 
+// ── Geocoding ─────────────────────────────────────────────
+export async function geocodeSearch(q, signal) {
+  const res = await api.get('/geocode/search', { params: { q }, signal });
+  return extract(res, 'results');
+}
+
+export async function reverseGeocode(lat, lng) {
+  const res = await api.get('/geocode/reverse', { params: { lat, lng } });
+  return extractOne(res, 'result');
+}
+
 // ── Provider search ───────────────────────────────────────
 export async function searchProviders(params) {
   const res = await api.get('/providers/search', { params });

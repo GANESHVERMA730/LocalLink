@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Search as SearchIcon, MapPin } from 'lucide-react';
 import { SearchForm } from '@/components/SearchForm';
 import { ProviderCard } from '@/components/ProviderCard';
-import { EmptyState, Spinner } from '@/components/ui';
+import { EmptyState, ErrorBanner, ProviderCardSkeleton } from '@/components/ui';
 import { searchProviders } from '@/lib/queries';
 
 export function CustomerSearch() {
@@ -25,8 +25,12 @@ export function CustomerSearch() {
         date: params.date,
       });
       setResults(data);
-    } catch {
-      setError('Could not complete the search. Please try again.');
+    } catch (err) {
+      setError(
+        err?.response
+          ? 'The server could not complete this search. Please try again in a moment.'
+          : 'Could not reach the server. Check your connection and try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -36,20 +40,22 @@ export function CustomerSearch() {
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink-900 sm:text-3xl">Find services near you</h1>
-        <p className="mt-1 text-sm text-ink-500">Search by location, category, and availability. Providers are ranked by distance.</p>
+        <p className="mt-1 text-sm text-ink-500">Search by locality, category, and availability. Providers are ranked by distance.</p>
       </div>
 
       <SearchForm onSearch={handleSearch} loading={loading} />
 
       <div className="mt-6">
         {loading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Spinner className="h-8 w-8" />
-            <p className="mt-3 text-sm text-ink-500">Searching nearby providers…</p>
+          <div>
+            <p className="mb-4 text-sm text-ink-500">Searching nearby providers…</p>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {[0, 1, 2, 3].map((i) => <ProviderCardSkeleton key={i} />)}
+            </div>
           </div>
         )}
 
-        {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+        {!loading && error && <ErrorBanner message={error} />}
 
         {!loading && !error && results && (
           <div>
@@ -58,7 +64,11 @@ export function CustomerSearch() {
               {lastParams?.locationLabel && <span className="flex min-w-0 items-center gap-1 text-sm text-ink-500"><MapPin size={14} className="shrink-0" /><span className="truncate">{lastParams.locationLabel}</span></span>}
             </div>
             {results.length === 0 ? (
-              <EmptyState icon={<SearchIcon size={24} />} title="No providers found" description="Try widening your search radius, removing filters, or choosing a different location." />
+              <EmptyState
+                icon={<SearchIcon size={24} />}
+                title="No providers in this area yet"
+                description="Try widening the search radius, clearing the category filter, or searching a nearby locality."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {results.map((r) => <ProviderCard key={r._id} result={r} />)}
@@ -68,7 +78,11 @@ export function CustomerSearch() {
         )}
 
         {!loading && !error && !results && (
-          <EmptyState icon={<MapPin size={24} />} title="Start your search" description="Enter lat,lng coordinates or use your current location to find service providers near you." />
+          <EmptyState
+            icon={<MapPin size={24} />}
+            title="Start your search"
+            description="Type a locality like “Gomti Nagar” or “Hazratganj”, or use your current location to find providers nearby."
+          />
         )}
       </div>
     </div>

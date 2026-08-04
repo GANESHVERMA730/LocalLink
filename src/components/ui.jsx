@@ -25,6 +25,33 @@ export function EmptyState({ icon, title, description, action }) {
   );
 }
 
+export function Skeleton({ className = '' }) {
+  return <div className={`animate-pulse rounded-lg bg-ink-100 ${className}`} />;
+}
+
+export function ProviderCardSkeleton() {
+  return (
+    <div className="card p-4 sm:p-5">
+      <div className="flex items-start gap-3">
+        <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+        <div className="min-w-0 flex-1 space-y-2">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-3 w-1/4" />
+        </div>
+        <Skeleton className="h-4 w-14 shrink-0" />
+      </div>
+      <div className="mt-4 space-y-2">
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Skeleton className="h-6 w-20 rounded-full" />
+        <Skeleton className="h-6 w-24 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
 export function Avatar({ src, name, size = 'md', className = '' }) {
   const sizes = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-16 w-16 text-lg' };
   const initials = name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
@@ -112,6 +139,10 @@ EmptyState.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string,
   action: PropTypes.node,
+};
+
+Skeleton.propTypes = {
+  className: PropTypes.string,
 };
 
 Avatar.propTypes = {

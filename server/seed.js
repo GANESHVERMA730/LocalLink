@@ -7,16 +7,16 @@ import { ProviderProfile } from './models/ProviderProfile.js';
 import { Service } from './models/Service.js';
 import { Availability } from './models/Availability.js';
 
-// NYC-area coordinates for demo providers
+// Lucknow-area coordinates for demo providers
 const PROVIDERS = [
   {
     name: 'Mario Rossi',
     email: 'plumber@local.link',
-    phone: '+1 555 010 1111',
+    phone: '+91 98765 01111',
     bio: 'Licensed master plumber with 15+ years of experience. Specializing in emergency repairs, pipe replacement, and bathroom renovations. Fully insured and available 24/7 for emergencies.',
-    address: '456 Atlantic Ave',
-    city: 'Brooklyn, NY',
-    coordinates: [-73.9903, 40.6834],
+    address: '12 Sector B, Aliganj',
+    city: 'Lucknow, UP',
+    coordinates: [80.9462, 26.8925],
     rating: 4.8,
     reviewCount: 27,
     isVerified: true,
@@ -37,11 +37,11 @@ const PROVIDERS = [
   {
     name: 'Sarah Chen',
     email: 'electric@local.link',
-    phone: '+1 555 020 2222',
-    bio: 'Licensed electrician serving Manhattan and Brooklyn. Residential and commercial wiring, panel upgrades, lighting installation, and safety inspections. NEC certified.',
-    address: '789 Broadway, Suite 200',
-    city: 'New York, NY',
-    coordinates: [-73.9916, 40.7233],
+    phone: '+91 98765 02222',
+    bio: 'Licensed electrician serving Gomti Nagar and central Lucknow. Residential and commercial wiring, panel upgrades, lighting installation, and safety inspections. ISI certified.',
+    address: 'Vibhuti Khand, Gomti Nagar',
+    city: 'Lucknow, UP',
+    coordinates: [81.0064, 26.8570],
     rating: 4.9,
     reviewCount: 41,
     isVerified: true,
@@ -61,11 +61,11 @@ const PROVIDERS = [
   {
     name: 'James Okafor',
     email: 'tutor@local.link',
-    phone: '+1 555 030 3333',
-    bio: 'Former high school math teacher with a masters in education. SAT/ACT prep, algebra through calculus, and physics tutoring. In-person or online sessions.',
-    address: '120 Astoria Blvd',
-    city: 'Queens, NY',
-    coordinates: [-73.9293, 40.7699],
+    phone: '+91 98765 03333',
+    bio: 'Former high school math teacher with a masters in education. Board exam prep, algebra through calculus, and physics tutoring. In-person or online sessions.',
+    address: '5 Ashok Marg, Hazratganj',
+    city: 'Lucknow, UP',
+    coordinates: [80.9430, 26.8500],
     rating: 4.7,
     reviewCount: 18,
     isVerified: false,
@@ -87,7 +87,7 @@ const PROVIDERS = [
 const CUSTOMER = {
   name: 'Alex Johnson',
   email: 'customer@local.link',
-  phone: '+1 555 040 4444',
+  phone: '+91 98765 04444',
   role: 'customer',
 };
 

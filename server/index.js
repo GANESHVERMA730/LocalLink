@@ -12,6 +12,7 @@ import providerRoutes from './routes/providers.js';
 import serviceRoutes from './routes/services.js';
 import availabilityRoutes from './routes/availabilities.js';
 import bookingRoutes from './routes/bookings.js';
+import geocodeRoutes from './routes/geocode.js';
 import { Message } from './models/Message.js';
 import { Booking } from './models/Booking.js';
 
@@ -40,6 +41,7 @@ app.use('/api/providers', providerRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/availabilities', availabilityRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/geocode', geocodeRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
