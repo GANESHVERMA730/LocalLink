@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { Service } from '../models/Service.js';
-import { ProviderProfile } from '../models/ProviderProfile.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -38,12 +37,6 @@ router.post('/', auth, requireRole('provider'), async (req, res, next) => {
   try {
     const data = serviceSchema.parse(req.body);
     const service = await Service.create({ ...data, provider: req.user._id });
-    // Add to provider profile
-    await ProviderProfile.findOneAndUpdate(
-      { user: req.user._id },
-      { $addToSet: { services: service._id } },
-      { upsert: false },
-    );
     res.status(201).json({ service });
   } catch (err) {
     next(err);
@@ -69,10 +62,6 @@ router.delete('/:id', auth, requireRole('provider'), async (req, res, next) => {
   try {
     const service = await Service.findOneAndDelete({ _id: req.params.id, provider: req.user._id });
     if (!service) return res.status(404).json({ error: 'Service not found' });
-    await ProviderProfile.findOneAndUpdate(
-      { user: req.user._id },
-      { $pull: { services: service._id } },
-    );
     res.json({ success: true });
   } catch (err) {
     next(err);

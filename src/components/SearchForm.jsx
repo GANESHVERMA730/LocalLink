@@ -16,9 +16,14 @@ export function SearchForm({ onSearch, loading }) {
   const [date, setDate] = useState('');
   const [geoLoading, setGeoLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [formError, setFormError] = useState('');
 
   const useMyLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setFormError('Your browser does not support location access. Enter coordinates as "lat,lng" instead.');
+      return;
+    }
+    setFormError('');
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -28,33 +33,47 @@ export function SearchForm({ onSearch, loading }) {
         setManualAddress('');
         setGeoLoading(false);
       },
-      () => setGeoLoading(false),
+      () => {
+        setGeoLoading(false);
+        setFormError('Could not get your location. Enter coordinates as "lat,lng" instead.');
+      },
       { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormError('');
+
+    let searchLat = lat;
+    let searchLng = lng;
+    let label = locationLabel;
+
     if (lat === 0 && lng === 0) {
-      // For dev/testing: allow manual lat/lng entry via the address field as "lat,lng"
       const parts = manualAddress.split(',').map((s) => parseFloat(s.trim()));
-      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        setLat(parts[0]);
-        setLng(parts[1]);
-        setLocationLabel(`Coords: ${parts[0]}, ${parts[1]}`);
-        onSearch({ lat: parts[0], lng: parts[1], maxDistance, category: category || undefined, minRating: minRating || undefined, date: date || undefined, locationLabel: `Coords: ${parts[0]}, ${parts[1]}` });
+      if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) {
+        setFormError('Enter coordinates as "lat,lng" (e.g. 40.71,-74.00) or use your current location.');
         return;
       }
-      return;
+      if (parts[0] < -90 || parts[0] > 90 || parts[1] < -180 || parts[1] > 180) {
+        setFormError('Latitude must be between -90 and 90, longitude between -180 and 180.');
+        return;
+      }
+      [searchLat, searchLng] = parts;
+      label = `Coords: ${searchLat}, ${searchLng}`;
+      setLat(searchLat);
+      setLng(searchLng);
+      setLocationLabel(label);
     }
+
     onSearch({
-      lat,
-      lng,
+      lat: searchLat,
+      lng: searchLng,
       maxDistance,
       category: category || undefined,
       minRating: minRating || undefined,
       date: date || undefined,
-      locationLabel,
+      locationLabel: label,
     });
   };
 
@@ -81,6 +100,7 @@ export function SearchForm({ onSearch, loading }) {
             </Button>
           </div>
           {lat !== 0 && <p className="mt-1.5 break-words text-xs text-ink-400">{locationLabel || 'Location set'} · {lat.toFixed(4)}, {lng.toFixed(4)}</p>}
+          {formError && <p role="alert" className="mt-1.5 break-words text-xs text-red-600">{formError}</p>}
         </div>
 
         <div>

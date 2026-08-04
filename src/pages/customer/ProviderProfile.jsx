@@ -113,7 +113,7 @@ export function ProviderProfilePage() {
       )}
 
       {bookingService && (
-        <BookingModal service={bookingService} providerId={profile.user} providerName={providerUser.name} onClose={() => setBookingService(null)} onBooked={(bookingId) => { setBookingService(null); navigate(`/dashboard/bookings/${bookingId}`); }} />
+        <BookingModal service={bookingService} providerId={providerUser._id} providerName={providerUser.name} onClose={() => setBookingService(null)} onBooked={(bookingId) => { setBookingService(null); navigate(`/dashboard/bookings/${bookingId}`); }} />
       )}
     </div>
   );

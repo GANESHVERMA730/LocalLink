@@ -119,11 +119,9 @@ async function seed() {
     for (const s of p.services) {
       const existing = await Service.findOne({ provider: user._id, title: s.title });
       if (!existing) {
-        const service = await Service.create({ ...s, provider: user._id });
-        profile.services.push(service._id);
+        await Service.create({ ...s, provider: user._id });
       }
     }
-    await profile.save();
     for (const a of p.availability) {
       const existing = await Availability.findOne({ provider: user._id, dayOfWeek: a.dayOfWeek, startTime: a.startTime });
       if (!existing) {

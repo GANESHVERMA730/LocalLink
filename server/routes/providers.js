@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { ProviderProfile } from '../models/ProviderProfile.js';
+import { Service } from '../models/Service.js';
 import { Availability } from '../models/Availability.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
@@ -35,10 +36,23 @@ router.get('/search', async (req, res, next) => {
         },
       },
       {
+        // Join on Service.provider rather than a denormalized id array on the
+        // profile, so a service is discoverable the moment it is created.
         $lookup: {
           from: 'services',
-          localField: 'services',
-          foreignField: '_id',
+          let: { providerUserId: '$user' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$provider', '$$providerUserId'] },
+                    { $eq: ['$isActive', true] },
+                  ],
+                },
+              },
+            },
+          ],
           as: 'services',
         },
       },
@@ -60,16 +74,14 @@ router.get('/search', async (req, res, next) => {
 
     let providers = await ProviderProfile.aggregate(pipeline);
 
-    // Filter by category on the joined services
+    // Filter by category on the joined services (already limited to active ones)
     if (category) {
       providers = providers
-        .filter((p) => p.services.some((s) => s.category === category && s.isActive))
+        .filter((p) => p.services.some((s) => s.category === category))
         .map((p) => ({
           ...p,
-          services: p.services.filter((s) => s.category === category && s.isActive),
+          services: p.services.filter((s) => s.category === category),
         }));
-    } else {
-      providers = providers.map((p) => ({ ...p, services: p.services.filter((s) => s.isActive) }));
     }
 
     // Filter by availability on a date
@@ -126,11 +138,11 @@ router.get('/search', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const profile = await ProviderProfile.findOne({ user: req.params.id })
-      .populate('user', 'name email phone profileImage')
-      .populate('services');
+      .populate('user', 'name email phone profileImage');
     if (!profile) return res.status(404).json({ error: 'Provider not found' });
+    const services = await Service.find({ provider: req.params.id, isActive: true }).sort({ createdAt: -1 });
     const availability = await Availability.find({ provider: req.params.id, isActive: true }).sort({ dayOfWeek: 1, startTime: 1 });
-    res.json({ profile, availability });
+    res.json({ profile: { ...profile.toObject(), services }, availability });
   } catch (err) {
     next(err);
   }
@@ -167,8 +179,10 @@ router.patch('/me', auth, requireRole('provider'), async (req, res, next) => {
 // Get own provider profile
 router.get('/me/profile', auth, requireRole('provider'), async (req, res, next) => {
   try {
-    const profile = await ProviderProfile.findOne({ user: req.user._id }).populate('services');
-    res.json({ profile });
+    const profile = await ProviderProfile.findOne({ user: req.user._id });
+    if (!profile) return res.json({ profile: null });
+    const services = await Service.find({ provider: req.user._id }).sort({ createdAt: -1 });
+    res.json({ profile: { ...profile.toObject(), services } });
   } catch (err) {
     next(err);
   }
