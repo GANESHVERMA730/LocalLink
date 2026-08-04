@@ -13,6 +13,9 @@ const providerProfileSchema = new mongoose.Schema(
     rating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
+    yearsExperience: { type: Number, default: 0, min: 0, max: 70 },
+    // Typical time to reply to a booking request, in minutes. 0 means "not stated".
+    responseTimeMinutes: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true },
 );

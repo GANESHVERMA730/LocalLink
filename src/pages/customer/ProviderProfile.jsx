@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Clock, Award, Briefcase, CalendarDays, Star } from 'lucide-react';
 import { fetchProviderProfile, fetchAvailabilitiesByProvider } from '@/lib/queries';
-import { Avatar, StarRating, VerifiedBadge, Button, Spinner, EmptyState } from '@/components/ui';
+import { Avatar, StarRating, VerifiedBadge, Button, Spinner, EmptyState, StatTile } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
 import { SERVICE_CATEGORIES, DAYS_OF_WEEK } from '@/constants/categories';
-import { formatPrice } from '@/lib/format';
+import { formatMonthYear, formatPrice, formatResponseTime } from '@/lib/format';
 import { BookingModal } from '@/components/BookingModal';
+import { ReviewsSection } from '@/components/ReviewsSection';
+
+const SERVICE_META = Object.fromEntries(SERVICE_CATEGORIES.map((c) => [c.value, c]));
 
 export function ProviderProfilePage() {
   const { userId } = useParams();
@@ -37,6 +40,7 @@ export function ProviderProfilePage() {
   const availByDay = {};
   avails.forEach((a) => { if (!availByDay[a.dayOfWeek]) availByDay[a.dayOfWeek] = []; availByDay[a.dayOfWeek].push(a); });
   const providerUser = profile.user;
+  const categories = Array.from(new Set(services.map((s) => s.category)));
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
@@ -45,9 +49,9 @@ export function ProviderProfilePage() {
       <div className="card overflow-hidden">
         <div className="h-20 bg-gradient-to-r from-primary-500 to-primary-700 sm:h-24" />
         <div className="px-4 pb-6 sm:px-6">
-          <div className="-mt-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
-            <Avatar src={providerUser.profileImage} name={providerUser.name} size="lg" className="shrink-0 ring-4 ring-white" />
-            <div className="min-w-0 flex-1 sm:pb-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <Avatar src={providerUser.profileImage} name={providerUser.name} size="lg" className="-mt-10 shrink-0 ring-4 ring-white" />
+            <div className="min-w-0 flex-1 sm:pt-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="break-words text-xl font-bold text-ink-900">{providerUser.name}</h1>
                 {profile.isVerified && <VerifiedBadge />}
@@ -59,8 +63,39 @@ export function ProviderProfilePage() {
               </div>
             </div>
           </div>
-          {profile.bio && <p className="mt-4 break-words text-sm leading-relaxed text-ink-600">{profile.bio}</p>}
-          {profile.address && <p className="mt-2 flex items-start gap-1.5 break-words text-sm text-ink-500"><MapPin size={14} className="mt-0.5 shrink-0" />{profile.address}</p>}
+
+          <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <StatTile icon={<Star size={16} />} label="Average rating" value={profile.rating > 0 ? profile.rating.toFixed(1) : 'New'} />
+            <StatTile icon={<Briefcase size={16} />} label="Completed jobs" value={profile.completedJobs ?? 0} />
+            <StatTile icon={<Clock size={16} />} label="Response time" value={formatResponseTime(profile.responseTimeMinutes)} />
+            <StatTile icon={<Award size={16} />} label="Years experience" value={profile.yearsExperience || '—'} />
+          </div>
+
+          {categories.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {categories.map((cat) => {
+                const meta = SERVICE_META[cat];
+                return (
+                  <span key={cat} className="badge bg-primary-50 text-primary-700">
+                    {meta?.icon && <CategoryIcon name={meta.icon} className="h-3 w-3" />}
+                    {meta?.label ?? cat}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+          {profile.bio && (
+            <div className="mt-5">
+              <h2 className="mb-1.5 text-sm font-semibold text-ink-700">About {providerUser.name.split(' ')[0]}</h2>
+              <p className="break-words text-sm leading-relaxed text-ink-600">{profile.bio}</p>
+            </div>
+          )}
+
+          <div className="mt-4 space-y-1.5 text-sm text-ink-500">
+            {profile.address && <p className="flex items-start gap-1.5 break-words"><MapPin size={14} className="mt-0.5 shrink-0" />{profile.address}</p>}
+            <p className="flex items-start gap-1.5"><CalendarDays size={14} className="mt-0.5 shrink-0" />Joined {formatMonthYear(providerUser.createdAt)}</p>
+          </div>
         </div>
       </div>
 
@@ -111,6 +146,8 @@ export function ProviderProfilePage() {
           </div>
         </section>
       )}
+
+      <ReviewsSection providerId={providerUser._id} />
 
       {bookingService && (
         <BookingModal service={bookingService} providerId={providerUser._id} providerName={providerUser.name} onClose={() => setBookingService(null)} onBooked={(bookingId) => { setBookingService(null); navigate(`/dashboard/bookings/${bookingId}`); }} />

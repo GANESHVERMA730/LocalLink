@@ -3,6 +3,20 @@ export function formatDistance(meters) {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
+export function formatResponseTime(minutes) {
+  if (!minutes) return 'Not stated';
+  if (minutes < 60) return `~${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `~${hours} hr${hours === 1 ? '' : 's'}`;
+  const days = Math.round(hours / 24);
+  return `~${days} day${days === 1 ? '' : 's'}`;
+}
+
+export function formatMonthYear(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+
 export function formatPrice(price, unit) {
   const value = Number(price) || 0;
   const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2);

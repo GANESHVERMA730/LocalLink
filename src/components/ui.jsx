@@ -1,4 +1,5 @@
 import { Star, CheckCircle2, XCircle, Clock, X, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 export function Spinner({ className = 'h-5 w-5' }) {
@@ -70,6 +71,53 @@ export function StarRating({ rating, size = 14 }) {
     <div className="flex items-center gap-1">
       <Star size={size} className={rating > 0 ? 'fill-accent-400 text-accent-400' : 'text-ink-300'} />
       <span className="text-sm font-medium text-ink-700">{rating > 0 ? rating.toFixed(1) : 'New'}</span>
+    </div>
+  );
+}
+
+export function StarRow({ rating, size = 16 }) {
+  return (
+    <span className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} size={size} className={n <= rating ? 'fill-accent-400 text-accent-400' : 'text-ink-300'} />
+      ))}
+    </span>
+  );
+}
+
+export function StarInput({ value, onChange, disabled }) {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+  return (
+    <div className="flex items-center gap-1" onMouseLeave={() => setHover(0)}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          disabled={disabled}
+          aria-label={`${n} star${n === 1 ? '' : 's'}`}
+          aria-pressed={value === n}
+          onMouseEnter={() => setHover(n)}
+          onFocus={() => setHover(n)}
+          onBlur={() => setHover(0)}
+          onClick={() => onChange(n)}
+          className="rounded p-0.5 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed"
+        >
+          <Star size={26} className={n <= shown ? 'fill-accent-400 text-accent-400' : 'text-ink-300'} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function StatTile({ icon, label, value }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl bg-ink-50 px-3 py-2.5">
+      <span className="mt-0.5 shrink-0 text-primary-600">{icon}</span>
+      <span className="min-w-0">
+        <span className="block break-words text-sm font-semibold text-ink-900">{value}</span>
+        <span className="block break-words text-xs text-ink-500">{label}</span>
+      </span>
     </div>
   );
 }
@@ -155,6 +203,23 @@ Avatar.propTypes = {
 StarRating.propTypes = {
   rating: PropTypes.number.isRequired,
   size: PropTypes.number,
+};
+
+StarRow.propTypes = {
+  rating: PropTypes.number.isRequired,
+  size: PropTypes.number,
+};
+
+StarInput.propTypes = {
+  value: PropTypes.number.isRequired,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};
+
+StatTile.propTypes = {
+  icon: PropTypes.node,
+  label: PropTypes.string.isRequired,
+  value: PropTypes.node.isRequired,
 };
 
 StatusBadge.propTypes = {

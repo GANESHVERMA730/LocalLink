@@ -134,3 +134,19 @@ export async function fetchMessages(bookingId) {
   const res = await api.get(`/bookings/${bookingId}/messages`);
   return extract(res, 'messages');
 }
+
+// ── Reviews ───────────────────────────────────────────────
+export async function fetchProviderReviews(providerId, params = {}) {
+  const res = await api.get(`/reviews/provider/${providerId}`, { params });
+  return res.data;
+}
+
+export async function fetchBookingReview(bookingId) {
+  const res = await api.get(`/reviews/booking/${bookingId}`);
+  return extractOne(res, 'review');
+}
+
+export async function createReview(input) {
+  const res = await api.post('/reviews', input);
+  return res.data;
+}

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ProviderProfile } from '../models/ProviderProfile.js';
 import { Service } from '../models/Service.js';
 import { Availability } from '../models/Availability.js';
+import { Booking } from '../models/Booking.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -11,6 +12,8 @@ const profileSchema = z.object({
   bio: z.string().max(2000).optional(),
   address: z.string().max(200).optional(),
   city: z.string().max(100).optional(),
+  yearsExperience: z.number().int().min(0).max(70).optional(),
+  responseTimeMinutes: z.number().int().min(0).max(10080).optional(),
   location: z
     .object({
       type: z.literal('Point'),
@@ -138,11 +141,14 @@ router.get('/search', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const profile = await ProviderProfile.findOne({ user: req.params.id })
-      .populate('user', 'name email phone profileImage');
+      .populate('user', 'name email phone profileImage createdAt');
     if (!profile) return res.status(404).json({ error: 'Provider not found' });
-    const services = await Service.find({ provider: req.params.id, isActive: true }).sort({ createdAt: -1 });
-    const availability = await Availability.find({ provider: req.params.id, isActive: true }).sort({ dayOfWeek: 1, startTime: 1 });
-    res.json({ profile: { ...profile.toObject(), services }, availability });
+    const [services, availability, completedJobs] = await Promise.all([
+      Service.find({ provider: req.params.id, isActive: true }).sort({ createdAt: -1 }),
+      Availability.find({ provider: req.params.id, isActive: true }).sort({ dayOfWeek: 1, startTime: 1 }),
+      Booking.countDocuments({ provider: req.params.id, status: 'completed' }),
+    ]);
+    res.json({ profile: { ...profile.toObject(), services, completedJobs }, availability });
   } catch (err) {
     next(err);
   }
@@ -181,8 +187,11 @@ router.get('/me/profile', auth, requireRole('provider'), async (req, res, next) 
   try {
     const profile = await ProviderProfile.findOne({ user: req.user._id });
     if (!profile) return res.json({ profile: null });
-    const services = await Service.find({ provider: req.user._id }).sort({ createdAt: -1 });
-    res.json({ profile: { ...profile.toObject(), services } });
+    const [services, completedJobs] = await Promise.all([
+      Service.find({ provider: req.user._id }).sort({ createdAt: -1 }),
+      Booking.countDocuments({ provider: req.user._id, status: 'completed' }),
+    ]);
+    res.json({ profile: { ...profile.toObject(), services, completedJobs } });
   } catch (err) {
     next(err);
   }

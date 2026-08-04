@@ -6,6 +6,8 @@ import { User } from './models/User.js';
 import { ProviderProfile } from './models/ProviderProfile.js';
 import { Service } from './models/Service.js';
 import { Availability } from './models/Availability.js';
+import { Booking } from './models/Booking.js';
+import { Review, recomputeProviderRating } from './models/Review.js';
 
 // Lucknow-area coordinates for demo providers
 const PROVIDERS = [
@@ -17,9 +19,14 @@ const PROVIDERS = [
     address: '12 Sector B, Aliganj',
     city: 'Lucknow, UP',
     coordinates: [80.9462, 26.8925],
-    rating: 4.8,
-    reviewCount: 27,
     isVerified: true,
+    yearsExperience: 15,
+    responseTimeMinutes: 15,
+    reviews: [
+      { rating: 5, comment: 'Arrived within 40 minutes of my call and had the burst pipe sorted before the floor was ruined. Tidied up afterwards too.' },
+      { rating: 5, comment: 'Fair pricing, explained exactly what was wrong instead of just replacing parts. Would book again.' },
+      { rating: 4, comment: 'Good work on the bathroom fittings. Ran slightly over the estimated time but the finish is solid.' },
+    ],
     services: [
       { title: 'Emergency plumbing repair', category: 'plumber', description: 'Burst pipe, leak, or backup? I will arrive within the hour and fix the issue fast.', basePrice: 120, priceUnit: 'per visit' },
       { title: 'Drain cleaning & unclogging', category: 'plumber', description: 'Professional drain snaking and hydro-jetting for kitchens, bathrooms, and main lines.', basePrice: 90, priceUnit: 'per visit' },
@@ -42,9 +49,13 @@ const PROVIDERS = [
     address: 'Vibhuti Khand, Gomti Nagar',
     city: 'Lucknow, UP',
     coordinates: [81.0064, 26.8570],
-    rating: 4.9,
-    reviewCount: 41,
     isVerified: true,
+    yearsExperience: 9,
+    responseTimeMinutes: 60,
+    reviews: [
+      { rating: 5, comment: 'Full panel inspection with a written safety report. Found two hazards the previous electrician missed.' },
+      { rating: 5, comment: 'Installed ceiling fans and smart lighting across the flat. Neat wiring, no mess left behind.' },
+    ],
     services: [
       { title: 'Electrical panel inspection', category: 'electrician', description: 'Comprehensive panel inspection with safety report. Identify hazards before they become problems.', basePrice: 150, priceUnit: 'per visit' },
       { title: 'Lighting installation', category: 'electrician', description: 'Recessed lights, chandeliers, ceiling fans, and smart lighting setup.', basePrice: 85, priceUnit: 'per hour' },
@@ -66,9 +77,12 @@ const PROVIDERS = [
     address: '5 Ashok Marg, Hazratganj',
     city: 'Lucknow, UP',
     coordinates: [80.9430, 26.8500],
-    rating: 4.7,
-    reviewCount: 18,
     isVerified: false,
+    yearsExperience: 6,
+    responseTimeMinutes: 240,
+    reviews: [
+      { rating: 4, comment: 'Patient with my daughter and genuinely good at breaking down calculus concepts. Her grades moved up a band.' },
+    ],
     services: [
       { title: 'SAT/ACT math prep', category: 'tutor', description: 'One-on-one test prep with proven strategies and practice tests. Average score improvement: 180 points.', basePrice: 60, priceUnit: 'per hour' },
       { title: 'Algebra & calculus tutoring', category: 'tutor', description: 'Middle school through AP calculus. Patient, concept-first teaching style.', basePrice: 50, priceUnit: 'per hour' },
@@ -93,10 +107,19 @@ const CUSTOMER = {
 
 const PASSWORD = 'demo123456';
 
+// Fixed anchor so demo bookings land on the same timestamps every run — a relative
+// "now" would make the dedup lookup below miss and duplicate reviews on each reseed.
+const SEED_EPOCH = Date.parse('2026-08-01T10:00:00.000Z');
+
 async function seed() {
   await connectDB();
   console.log('Seeding demo data…');
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
+
+  let customer = await User.findOne({ email: CUSTOMER.email });
+  if (!customer) {
+    customer = await User.create({ ...CUSTOMER, passwordHash });
+  }
 
   for (const p of PROVIDERS) {
     let user = await User.findOne({ email: p.email });
@@ -111,9 +134,9 @@ async function seed() {
         address: p.address,
         city: p.city,
         location: { type: 'Point', coordinates: p.coordinates },
-        rating: p.rating,
-        reviewCount: p.reviewCount,
         isVerified: p.isVerified,
+        yearsExperience: p.yearsExperience,
+        responseTimeMinutes: p.responseTimeMinutes,
       });
     }
     for (const s of p.services) {
@@ -128,13 +151,42 @@ async function seed() {
         await Availability.create({ ...a, provider: user._id });
       }
     }
+
+    // Demo reviews need real completed bookings behind them, since that is exactly
+    // what the review route requires of a live customer.
+    const services = await Service.find({ provider: user._id }).sort({ createdAt: 1 });
+    for (let i = 0; i < p.reviews.length; i += 1) {
+      const service = services[i % services.length];
+      if (!service) break;
+      const scheduledAt = new Date(SEED_EPOCH - (i + 1) * 7 * 24 * 60 * 60 * 1000);
+      let booking = await Booking.findOne({ customer: customer._id, provider: user._id, service: service._id, scheduledAt });
+      if (!booking) {
+        booking = await Booking.create({
+          customer: customer._id,
+          provider: user._id,
+          service: service._id,
+          status: 'completed',
+          scheduledAt,
+          durationMinutes: 60,
+          customerNotes: '',
+        });
+      }
+      const existingReview = await Review.findOne({ booking: booking._id });
+      if (!existingReview) {
+        await Review.create({
+          booking: booking._id,
+          customer: customer._id,
+          provider: user._id,
+          rating: p.reviews[i].rating,
+          comment: p.reviews[i].comment,
+        });
+      }
+    }
+    await recomputeProviderRating(user._id);
+
     console.log(`  ✓ ${p.name} (${p.email})`);
   }
 
-  let customer = await User.findOne({ email: CUSTOMER.email });
-  if (!customer) {
-    customer = await User.create({ ...CUSTOMER, passwordHash });
-  }
   console.log(`  ✓ ${CUSTOMER.name} (${CUSTOMER.email})`);
 
   await mongoose.connection.close();

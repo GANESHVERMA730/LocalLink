@@ -2,10 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Check, X, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { fetchBooking, updateBookingStatus } from '@/lib/queries';
+import { fetchBooking, fetchBookingReview, updateBookingStatus } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
 import { Avatar, StatusBadge, Spinner, EmptyState, Button } from '@/components/ui';
 import { ChatWindow } from '@/components/ChatWindow';
+import { ReviewPrompt } from '@/components/ReviewPrompt';
 import { formatDateTime, formatPrice } from '@/lib/format';
 
 export function BookingDetail() {
@@ -13,6 +14,7 @@ export function BookingDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [booking, setBooking] = useState(null);
+  const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(null);
   const [error, setError] = useState(null);
@@ -22,6 +24,12 @@ export function BookingDetail() {
     try {
       const data = await fetchBooking(bookingId);
       setBooking(data);
+      try {
+        setReview(await fetchBookingReview(bookingId));
+      } catch {
+        // A missing review is normal; don't fail the whole page over it.
+        setReview(null);
+      }
     } catch {
       setError('Could not load this booking.');
     } finally {
@@ -63,6 +71,7 @@ export function BookingDetail() {
   const canReject = isProvider && booking.status === 'pending';
   const canComplete = isProvider && booking.status === 'accepted';
   const canCancel = (isProvider || isCustomer) && (booking.status === 'pending' || booking.status === 'accepted');
+  const canReview = isCustomer && booking.status === 'completed';
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
@@ -103,6 +112,15 @@ export function BookingDetail() {
                 {canCancel && <Button variant="ghost" onClick={() => handleStatusChange('cancelled')} loading={acting === 'cancelled'}><X size={16} />Cancel booking</Button>}
               </div>
             </div>
+          )}
+
+          {canReview && (
+            <ReviewPrompt
+              bookingId={booking._id}
+              providerName={other?.name ?? 'this provider'}
+              existingReview={review}
+              onSubmitted={setReview}
+            />
           )}
         </div>
 
