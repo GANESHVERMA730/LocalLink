@@ -34,6 +34,22 @@ export async function updateMe(patch) {
   return extractOne(res, 'user');
 }
 
+// ── Favorites ─────────────────────────────────────────────
+export async function fetchFavorites() {
+  const res = await api.get('/users/me/favorites');
+  return extract(res, 'providers');
+}
+
+export async function addFavorite(providerId) {
+  const res = await api.post('/users/me/favorites', { providerId });
+  return extract(res, 'favorites');
+}
+
+export async function removeFavorite(providerId) {
+  const res = await api.delete(`/users/me/favorites/${providerId}`);
+  return extract(res, 'favorites');
+}
+
 // ── Geocoding ─────────────────────────────────────────────
 export async function geocodeSearch(q, signal) {
   const res = await api.get('/geocode/search', { params: { q }, signal });

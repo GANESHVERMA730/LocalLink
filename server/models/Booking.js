@@ -1,5 +1,19 @@
 import mongoose from 'mongoose';
 
+const statusEventSchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected', 'completed', 'cancelled'],
+      required: true,
+    },
+    at: { type: Date, required: true },
+    by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    note: { type: String, default: '' },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -14,6 +28,9 @@ const bookingSchema = new mongoose.Schema(
     durationMinutes: { type: Number, default: 60, min: 1 },
     customerNotes: { type: String, default: '' },
     providerNotes: { type: String, default: '' },
+    // Append-only. Bookings created before this field existed have an empty
+    // array; readers synthesize a first entry from createdAt instead.
+    statusHistory: { type: [statusEventSchema], default: [] },
   },
   { timestamps: true },
 );

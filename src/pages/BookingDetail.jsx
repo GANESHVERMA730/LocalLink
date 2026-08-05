@@ -4,9 +4,11 @@ import { ArrowLeft, Calendar, Clock, Check, X, MessageSquare } from 'lucide-reac
 import { useAuth } from '@/context/AuthContext';
 import { fetchBooking, fetchBookingReview, updateBookingStatus } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
-import { Avatar, StatusBadge, Spinner, EmptyState, Button } from '@/components/ui';
+import { Avatar, StatusBadge, Spinner, EmptyState, Button, ErrorBanner } from '@/components/ui';
 import { ChatWindow } from '@/components/ChatWindow';
 import { ReviewPrompt } from '@/components/ReviewPrompt';
+import { BookingTimeline } from '@/components/BookingTimeline';
+import { allowedActions } from '@/lib/bookingFlow';
 import { formatDateTime, formatPrice } from '@/lib/format';
 
 export function BookingDetail() {
@@ -53,8 +55,8 @@ export function BookingDetail() {
     try {
       const updated = await updateBookingStatus(bookingId, newStatus);
       setBooking(updated);
-    } catch {
-      setError('Could not update the booking status. Please try again.');
+    } catch (err) {
+      setError(err?.response?.data?.error ?? 'Could not update the booking status. Please try again.');
     } finally {
       setActing(null);
     }
@@ -67,17 +69,15 @@ export function BookingDetail() {
   const isCustomer = user?._id === booking.customer._id || user?._id === booking.customer;
   const other = isProvider ? booking.customer : booking.provider;
 
-  const canAccept = isProvider && booking.status === 'pending';
-  const canReject = isProvider && booking.status === 'pending';
-  const canComplete = isProvider && booking.status === 'accepted';
-  const canCancel = (isProvider || isCustomer) && (booking.status === 'pending' || booking.status === 'accepted');
+  const viewerRole = isProvider ? 'provider' : 'customer';
+  const actions = allowedActions(booking.status, viewerRole);
   const canReview = isCustomer && booking.status === 'completed';
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <Link to="/dashboard/bookings" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 hover:text-ink-800"><ArrowLeft size={16} />Back to bookings</Link>
 
-      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+      {error && <div className="mb-4"><ErrorBanner message={error} /></div>}
 
       <div className="grid gap-6 lg:grid-cols-5">
         <div className="min-w-0 space-y-4 lg:col-span-2">
@@ -102,17 +102,30 @@ export function BookingDetail() {
             {booking.customerNotes && <div className="mt-4"><p className="text-xs font-medium text-ink-500">Customer notes</p><p className="mt-1 rounded-lg bg-ink-50 p-3 text-sm text-ink-700 [overflow-wrap:anywhere]">{booking.customerNotes}</p></div>}
           </div>
 
-          {(canAccept || canReject || canComplete || canCancel) && (
+          {actions.length > 0 && (
             <div className="card p-4 sm:p-5">
               <h2 className="mb-3 text-sm font-semibold text-ink-700">Actions</h2>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {canAccept && <Button onClick={() => handleStatusChange('accepted')} loading={acting === 'accepted'}><Check size={16} />Accept</Button>}
-                {canReject && <Button variant="danger" onClick={() => handleStatusChange('rejected')} loading={acting === 'rejected'}><X size={16} />Reject</Button>}
-                {canComplete && <Button variant="secondary" onClick={() => handleStatusChange('completed')} loading={acting === 'completed'}><Check size={16} />Mark completed</Button>}
-                {canCancel && <Button variant="ghost" onClick={() => handleStatusChange('cancelled')} loading={acting === 'cancelled'}><X size={16} />Cancel booking</Button>}
+                {actions.map((a) => (
+                  <Button
+                    key={a.status}
+                    variant={a.variant}
+                    onClick={() => handleStatusChange(a.status)}
+                    loading={acting === a.status}
+                    disabled={acting !== null && acting !== a.status}
+                  >
+                    {a.status === 'accepted' || a.status === 'completed' ? <Check size={16} /> : <X size={16} />}
+                    {a.label}
+                  </Button>
+                ))}
               </div>
             </div>
           )}
+
+          <div className="card p-4 sm:p-5">
+            <h2 className="mb-3 text-sm font-semibold text-ink-700">Timeline</h2>
+            <BookingTimeline booking={booking} />
+          </div>
 
           {canReview && (
             <ReviewPrompt

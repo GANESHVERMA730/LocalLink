@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['customer', 'provider'], required: true },
     phone: { type: String, default: '' },
     profileImage: { type: String, default: '' },
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true },
 );

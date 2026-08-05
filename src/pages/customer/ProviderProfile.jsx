@@ -7,6 +7,7 @@ import { CategoryIcon } from '@/components/Icon';
 import { SERVICE_CATEGORIES, DAYS_OF_WEEK } from '@/constants/categories';
 import { formatMonthYear, formatPrice, formatResponseTime } from '@/lib/format';
 import { BookingModal } from '@/components/BookingModal';
+import { FavoriteButton } from '@/components/FavoriteButton';
 import { ReviewsSection } from '@/components/ReviewsSection';
 
 const SERVICE_META = Object.fromEntries(SERVICE_CATEGORIES.map((c) => [c.value, c]));
@@ -55,6 +56,7 @@ export function ProviderProfilePage() {
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="break-words text-xl font-bold text-ink-900">{providerUser.name}</h1>
                 {profile.isVerified && <VerifiedBadge />}
+                <FavoriteButton providerId={providerUser._id} size={20} />
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-500">
                 <StarRating rating={profile.rating} />

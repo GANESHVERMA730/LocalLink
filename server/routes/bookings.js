@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { Booking } from '../models/Booking.js';
 import { Message } from '../models/Message.js';
-import { auth } from '../middleware/auth.js';
+import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -19,12 +19,22 @@ const statusSchema = z.object({
   providerNotes: z.string().max(2000).optional(),
 });
 
-const ALLOWED_TRANSITIONS = {
-  pending: ['accepted', 'rejected', 'cancelled'],
-  accepted: ['completed', 'cancelled'],
-  rejected: [],
-  completed: [],
-  cancelled: [],
+// Which role may make each move. Transition legality and authorization live in
+// one table on purpose: a new transition cannot be added without also declaring
+// who is allowed to make it.
+const TRANSITIONS = {
+  pending: { accepted: 'provider', rejected: 'provider', cancelled: 'customer' },
+  accepted: { completed: 'provider', cancelled: 'provider' },
+  rejected: {},
+  completed: {},
+  cancelled: {},
+};
+
+const ACTOR_LABEL = {
+  accepted: 'accept',
+  rejected: 'reject',
+  completed: 'complete',
+  cancelled: 'cancel',
 };
 
 // List bookings for current user
@@ -49,7 +59,8 @@ router.get('/:id', auth, async (req, res, next) => {
     const booking = await Booking.findById(req.params.id)
       .populate('customer', 'name email phone profileImage')
       .populate('provider', 'name email phone profileImage')
-      .populate('service', 'title category basePrice priceUnit');
+      .populate('service', 'title category basePrice priceUnit')
+      .populate('statusHistory.by', 'name');
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
     const userId = req.user._id.toString();
     if (booking.customer._id.toString() !== userId && booking.provider._id.toString() !== userId) {
@@ -62,7 +73,7 @@ router.get('/:id', auth, async (req, res, next) => {
 });
 
 // Create booking (customer)
-router.post('/', auth, async (req, res, next) => {
+router.post('/', auth, requireRole('customer'), async (req, res, next) => {
   try {
     const data = createSchema.parse(req.body);
     const booking = await Booking.create({
@@ -73,6 +84,7 @@ router.post('/', auth, async (req, res, next) => {
       durationMinutes: data.durationMinutes,
       customerNotes: data.customerNotes,
       status: 'pending',
+      statusHistory: [{ status: 'pending', at: new Date(), by: req.user._id }],
     });
     await booking.populate('customer', 'name email phone profileImage');
     await booking.populate('provider', 'name email phone profileImage');
@@ -98,22 +110,28 @@ router.patch('/:id', auth, async (req, res, next) => {
     }
 
     const current = booking.status;
-    const allowed = ALLOWED_TRANSITIONS[current] || [];
-    if (!allowed.includes(status)) {
-      return res.status(400).json({ error: `Cannot transition from ${current} to ${status}` });
+    const requiredRole = TRANSITIONS[current]?.[status];
+    if (!requiredRole) {
+      return res
+        .status(409)
+        .json({ error: `Cannot change a ${current} booking to ${status}` });
     }
 
-    // Role-based transition checks
-    if (status === 'accepted' || status === 'rejected') {
-      if (!isProvider) return res.status(403).json({ error: 'Only the provider can accept or reject' });
+    const actingAs = isCustomer ? 'customer' : 'provider';
+    if (actingAs !== requiredRole) {
+      return res
+        .status(403)
+        .json({ error: `Only the ${requiredRole} can ${ACTOR_LABEL[status]} this booking` });
     }
 
     booking.status = status;
     if (providerNotes !== undefined) booking.providerNotes = providerNotes;
+    booking.statusHistory.push({ status, at: new Date(), by: req.user._id });
     await booking.save();
     await booking.populate('customer', 'name email phone profileImage');
     await booking.populate('provider', 'name email phone profileImage');
     await booking.populate('service', 'title category basePrice priceUnit');
+    await booking.populate('statusHistory.by', 'name');
 
     // Emit Socket.io event
     req.io.to(`booking:${booking._id}`).emit('booking:updated', { booking });

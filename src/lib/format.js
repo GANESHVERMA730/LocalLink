@@ -20,7 +20,7 @@ export function formatMonthYear(iso) {
 export function formatPrice(price, unit) {
   const value = Number(price) || 0;
   const formatted = value % 1 === 0 ? value.toString() : value.toFixed(2);
-  return `$${formatted} ${unit}`;
+  return `$${formatted} ${unit}`.trim();
 }
 
 export function formatDateTime(iso) {

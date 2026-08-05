@@ -3,13 +3,14 @@ import { MapPin, ArrowRight } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { SERVICE_CATEGORIES } from '@/constants/categories';
 import { Avatar, StarRating, VerifiedBadge } from '@/components/ui';
+import { FavoriteButton } from '@/components/FavoriteButton';
 import { CategoryIcon } from '@/components/Icon';
 import { formatDistance, formatPrice } from '@/lib/format';
 
 const SERVICE_META = Object.fromEntries(SERVICE_CATEGORIES.map((c) => [c.value, c]));
 
 export function ProviderCard({ result }) {
-  const categories = Array.from(new Set(result.services.map((s) => s.category)));
+  const categories = Array.from(new Set((result.services ?? []).map((s) => s.category)));
   const userId = typeof result.user === 'object' ? result.user._id : result.user;
   const userName = typeof result.user === 'object' ? result.user.name : 'Provider';
   const userImage = typeof result.user === 'object' ? result.user.profileImage : '';
@@ -27,8 +28,11 @@ export function ProviderCard({ result }) {
                 {result.isVerified && <VerifiedBadge />}
               </div>
             </div>
-            <div className="shrink-0 text-right">
-              <div className="flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-primary-700"><MapPin size={14} className="shrink-0" />{formatDistance(result.distance)}</div>
+            <div className="flex shrink-0 items-center gap-1 text-right">
+              {result.distance != null && (
+                <div className="flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-primary-700"><MapPin size={14} className="shrink-0" />{formatDistance(result.distance)}</div>
+              )}
+              <FavoriteButton providerId={userId} />
             </div>
           </div>
           {result.bio && <p className="mt-2 line-clamp-2 break-words text-sm text-ink-500">{result.bio}</p>}
@@ -41,7 +45,7 @@ export function ProviderCard({ result }) {
               })}
             </div>
           )}
-          {result.services.length > 0 && (
+          {(result.services ?? []).length > 0 && (
             <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-ink-100 pt-3">
               <div className="text-sm text-ink-500">From <span className="font-semibold text-ink-800">{formatPrice(Math.min(...result.services.map((s) => Number(s.basePrice))), result.services[0]?.priceUnit ?? '')}</span></div>
               <span className="flex items-center gap-1 whitespace-nowrap text-sm font-medium text-primary-600 transition-transform group-hover:translate-x-0.5">View profile <ArrowRight size={14} /></span>

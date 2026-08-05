@@ -130,12 +130,38 @@ export function StatusBadge({ status }) {
     completed: { label: 'Completed', className: 'bg-ink-100 text-ink-700', icon: CheckCircle2 },
     cancelled: { label: 'Cancelled', className: 'bg-ink-100 text-ink-500', icon: X },
   };
-  const { label, className, icon: Icon } = config[status];
+  const fallback = { label: status ?? 'Unknown', className: 'bg-ink-100 text-ink-500', icon: Clock };
+  const { label, className, icon: Icon } = config[status] ?? fallback;
   return (
     <span className={`badge ${className}`}>
       <Icon size={12} />
       {label}
     </span>
+  );
+}
+
+export function Tabs({ items, value, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2" role="tablist">
+      {items.map((t) => {
+        const active = value === t.value;
+        return (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(t.value)}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              active ? 'bg-primary-600 text-white' : 'border border-ink-200 bg-white text-ink-600 hover:bg-ink-50'
+            }`}
+          >
+            {t.label}
+            {t.count !== undefined && <span className="ml-1.5 text-xs opacity-70">{t.count}</span>}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -223,7 +249,19 @@ StatTile.propTypes = {
 };
 
 StatusBadge.propTypes = {
-  status: PropTypes.oneOf(['pending', 'accepted', 'rejected', 'completed', 'cancelled']).isRequired,
+  status: PropTypes.string,
+};
+
+Tabs.propTypes = {
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      count: PropTypes.number,
+    }),
+  ).isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
 };
 
 Button.propTypes = {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, MapPin, Search, Calendar, Settings, User as UserIcon } from 'lucide-react';
+import { Menu, X, LogOut, MapPin, Search, Calendar, Settings, User as UserIcon, Heart, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export function Navbar() {
@@ -22,7 +22,9 @@ export function Navbar() {
           { to: '/dashboard/provider/bookings', label: 'Bookings', icon: Calendar },
         ]
       : [
+          { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true },
           { to: '/dashboard/search', label: 'Search', icon: Search },
+          { to: '/dashboard/favorites', label: 'Saved', icon: Heart },
           { to: '/dashboard/bookings', label: 'My Bookings', icon: Calendar },
         ];
 
@@ -42,6 +44,7 @@ export function Navbar() {
               <NavLink
                 key={l.to}
                 to={l.to}
+                end={l.end}
                 className={({ isActive }) =>
                   `flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                     isActive ? 'bg-primary-50 text-primary-700' : 'text-ink-600 hover:bg-ink-100'
@@ -89,6 +92,7 @@ export function Navbar() {
                 <NavLink
                   key={l.to}
                   to={l.to}
+                  end={l.end}
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${

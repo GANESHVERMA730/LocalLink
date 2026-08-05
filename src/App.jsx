@@ -1,11 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { FavoritesProvider } from '@/context/FavoritesContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { CustomerSearch } from '@/pages/customer/CustomerSearch';
+import { CustomerDashboard } from '@/pages/customer/CustomerDashboard';
+import { Favorites } from '@/pages/customer/Favorites';
 import { ProviderProfilePage } from '@/pages/customer/ProviderProfile';
 import { BookingsList } from '@/pages/BookingsList';
 import { BookingDetail } from '@/pages/BookingDetail';
@@ -18,12 +21,14 @@ import { FullPageSpinner } from '@/components/ui';
 
 function AppLayout() {
   return (
-    <div className="min-h-screen bg-ink-50">
-      <Navbar />
-      <main className="animate-fade-in">
-        <Outlet />
-      </main>
-    </div>
+    <FavoritesProvider>
+      <div className="min-h-screen bg-ink-50">
+        <Navbar />
+        <main className="animate-fade-in">
+          <Outlet />
+        </main>
+      </div>
+    </FavoritesProvider>
   );
 }
 
@@ -34,10 +39,10 @@ function RoleRoute({ role }) {
   return <Outlet />;
 }
 
-function DashboardRedirect() {
+function DashboardHome() {
   const { user } = useAuth();
   if (user?.role === 'provider') return <Navigate to="/dashboard/provider/bookings" replace />;
-  return <Navigate to="/dashboard/search" replace />;
+  return <CustomerDashboard />;
 }
 
 function AppRoutes() {
@@ -55,10 +60,11 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardRedirect />} />
+        <Route index element={<DashboardHome />} />
 
         {/* Customer routes */}
         <Route path="search" element={<CustomerSearch />} />
+        <Route path="favorites" element={<Favorites />} />
         <Route path="providers/:userId" element={<ProviderProfilePage />} />
         <Route path="bookings" element={<BookingsList />} />
         <Route path="bookings/:bookingId" element={<BookingDetail />} />
