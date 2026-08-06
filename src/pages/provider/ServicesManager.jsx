@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { fetchMyServices, createService, updateService, deleteService } from '@/lib/queries';
 import { SERVICE_CATEGORIES, PRICE_UNITS } from '@/constants/categories';
@@ -32,14 +33,27 @@ export function ServicesManager() {
       const payload = { title: editing.title, category: editing.category, description: editing.description, basePrice: Number(editing.basePrice) || 0, priceUnit: editing.priceUnit, isActive: editing.isActive };
       if (editing.id) await updateService(editing.id, payload);
       else await createService(payload);
+      toast.success(editing.id ? 'Service updated.' : 'Service added.');
       setEditing(null);
       await load();
-    } catch { setError('Could not save the service. Please try again.'); } finally { setSaving(false); }
+    } catch {
+      const msg = 'Could not save the service. Please try again.';
+      setError(msg);
+      toast.error(msg);
+    } finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this service? This cannot be undone.')) return;
-    try { await deleteService(id); await load(); } catch { setError('Could not delete the service.'); }
+    try {
+      await deleteService(id);
+      toast.success('Service deleted.');
+      await load();
+    } catch {
+      const msg = 'Could not delete the service.';
+      setError(msg);
+      toast.error(msg);
+    }
   };
 
   if (loading) return <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6"><Spinner className="h-8 w-8 mx-auto mt-20" /></div>;

@@ -1,11 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { FavoritesProvider } from '@/context/FavoritesContext';
+import { NotificationProvider } from '@/context/NotificationContext';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Navbar } from '@/components/Navbar';
 import { Landing } from '@/pages/Landing';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
+import { ForgotPassword } from '@/pages/ForgotPassword';
+import { ResetPassword } from '@/pages/ResetPassword';
 import { CustomerSearch } from '@/pages/customer/CustomerSearch';
 import { CustomerDashboard } from '@/pages/customer/CustomerDashboard';
 import { Favorites } from '@/pages/customer/Favorites';
@@ -18,16 +22,55 @@ import { ServicesManager } from '@/pages/provider/ServicesManager';
 import { AvailabilityEditor } from '@/pages/provider/AvailabilityEditor';
 import { ProviderDashboard } from '@/pages/provider/ProviderDashboard';
 import { FullPageSpinner } from '@/components/ui';
+import { Component } from 'react';
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Uncaught error:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <span className="text-2xl">⚠</span>
+          </div>
+          <h1 className="text-xl font-bold text-ink-900">Something went wrong</h1>
+          <p className="max-w-sm text-sm text-ink-500">An unexpected error occurred. Please refresh the page.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-primary"
+          >
+            Refresh page
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function AppLayout() {
   return (
     <FavoritesProvider>
-      <div className="min-h-screen bg-ink-50">
-        <Navbar />
-        <main className="animate-fade-in">
-          <Outlet />
-        </main>
-      </div>
+      <NotificationProvider>
+        <div className="min-h-screen bg-ink-50">
+          <Navbar />
+          <main className="animate-fade-in">
+            <Outlet />
+          </main>
+        </div>
+      </NotificationProvider>
     </FavoritesProvider>
   );
 }
@@ -51,6 +94,8 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route
         path="/dashboard"
@@ -86,10 +131,22 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRoutes />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: { fontSize: '14px', maxWidth: '360px' },
+              success: { iconTheme: { primary: '#16a34a', secondary: '#f0fdf4' } },
+              error: { iconTheme: { primary: '#dc2626', secondary: '#fef2f2' } },
+            }}
+          />
+        </BrowserRouter>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
+

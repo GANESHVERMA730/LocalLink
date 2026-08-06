@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Mail, Lock, User, Phone, ArrowRight, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Button, ErrorBanner } from '@/components/ui';
 
@@ -29,6 +30,7 @@ export function Register() {
       setError(error);
       return;
     }
+    toast.success('Account created! Welcome to LocalLink.');
     navigate('/dashboard', { replace: true });
   };
 

@@ -1,12 +1,77 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, MapPin, Search, Calendar, Settings, User as UserIcon, Heart, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, MapPin, Search, Calendar, Settings, User as UserIcon, Heart, LayoutDashboard, Bell } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useNotifications } from '@/context/NotificationContext';
+import { formatRelativeTime } from '@/lib/format';
+
+function NotificationDropdown({ onClose }) {
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const navigate = useNavigate();
+
+  const handleClick = (n) => {
+    if (!n.read) markRead(n._id);
+    if (n.link) navigate(n.link);
+    onClose();
+  };
+
+  return (
+    <div className="absolute right-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-ink-100 bg-white shadow-xl z-50">
+      <div className="flex items-center justify-between border-b border-ink-100 px-4 py-3">
+        <span className="text-sm font-semibold text-ink-900">Notifications</span>
+        {unreadCount > 0 && (
+          <button
+            onClick={markAllRead}
+            className="text-xs font-medium text-primary-600 hover:text-primary-700"
+          >
+            Mark all read
+          </button>
+        )}
+      </div>
+      <div className="max-h-80 overflow-y-auto divide-y divide-ink-50">
+        {notifications.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-ink-400">No notifications yet.</div>
+        ) : (
+          notifications.map((n) => (
+            <button
+              key={n._id}
+              onClick={() => handleClick(n)}
+              className={`w-full px-4 py-3 text-left transition-colors hover:bg-ink-50 ${!n.read ? 'bg-primary-50/40' : ''}`}
+            >
+              <div className="flex items-start gap-2">
+                {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary-500" />}
+                <div className={`min-w-0 ${n.read ? 'pl-4' : ''}`}>
+                  <p className="truncate text-sm font-medium text-ink-900">{n.title}</p>
+                  <p className="mt-0.5 text-xs text-ink-500 line-clamp-2">{n.message}</p>
+                  <p className="mt-1 text-xs text-ink-400">{formatRelativeTime(n.createdAt)}</p>
+                </div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function Navbar() {
   const { user, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    function handleClick(e) {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    }
+    if (notifOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [notifOpen]);
 
   const handleSignOut = () => {
     signOut();
@@ -61,6 +126,22 @@ export function Navbar() {
         <div className="hidden shrink-0 items-center gap-3 lg:flex">
           {user ? (
             <>
+              {/* Notification bell */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifOpen((v) => !v)}
+                  className="relative rounded-lg p-2 text-ink-600 hover:bg-ink-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus:outline-none"
+                  aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && <NotificationDropdown onClose={() => setNotifOpen(false)} />}
+              </div>
               <span className="text-sm font-medium text-ink-700 max-w-[120px] truncate">{user.name}</span>
               <button onClick={handleSignOut} className="btn-ghost flex items-center gap-2" title="Logout">
                 <LogOut size={16} />
@@ -104,6 +185,19 @@ export function Navbar() {
                   {l.label}
                 </NavLink>
               ))}
+              {/* Mobile notification link */}
+              <button
+                onClick={() => { setOpen(false); setNotifOpen(true); }}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-700 hover:bg-ink-100"
+              >
+                <Bell size={18} />
+                Notifications
+                {unreadCount > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
               <button
                 onClick={() => {
                   setOpen(false);

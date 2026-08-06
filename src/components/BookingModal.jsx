@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Calendar, Clock, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Button, ErrorBanner } from '@/components/ui';
 import { CategoryIcon } from '@/components/Icon';
 import { createBooking } from '@/lib/queries';
@@ -31,9 +32,12 @@ export function BookingModal({ service, providerId, providerName, onClose, onBoo
         durationMinutes: duration,
         customerNotes: notes,
       });
+      toast.success('Booking request sent!');
       onBooked(booking._id);
-    } catch {
-      setError('Could not create the booking. Please try again.');
+    } catch (err) {
+      const msg = err?.response?.data?.error ?? 'Could not create the booking. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

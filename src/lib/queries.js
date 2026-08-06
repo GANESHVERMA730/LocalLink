@@ -151,7 +151,21 @@ export async function fetchMessages(bookingId) {
   return extract(res, 'messages');
 }
 
-// ── Reviews ───────────────────────────────────────────────
+// ── Notifications ─────────────────────────────────────────
+export async function fetchNotifications(params = {}) {
+  const res = await api.get('/notifications', { params });
+  return res.data;
+}
+
+export async function markNotificationRead(id) {
+  const res = await api.patch(`/notifications/${id}/read`);
+  return extractOne(res, 'notification');
+}
+
+export async function markAllNotificationsRead() {
+  await api.post('/notifications/mark-all-read');
+}
+
 export async function fetchProviderReviews(providerId, params = {}) {
   const res = await api.get(`/reviews/provider/${providerId}`, { params });
   return res.data;

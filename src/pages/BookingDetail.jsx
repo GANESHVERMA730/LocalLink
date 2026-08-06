@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, Check, X, MessageSquare } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { fetchBooking, fetchBookingReview, updateBookingStatus } from '@/lib/queries';
 import { onBookingUpdated } from '@/lib/socket';
@@ -55,8 +56,12 @@ export function BookingDetail() {
     try {
       const updated = await updateBookingStatus(bookingId, newStatus);
       setBooking(updated);
+      const labels = { accepted: 'Booking accepted', rejected: 'Booking rejected', completed: 'Booking marked complete', cancelled: 'Booking cancelled' };
+      toast.success(labels[newStatus] ?? 'Booking updated');
     } catch (err) {
-      setError(err?.response?.data?.error ?? 'Could not update the booking status. Please try again.');
+      const msg = err?.response?.data?.error ?? 'Could not update the booking status. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setActing(null);
     }

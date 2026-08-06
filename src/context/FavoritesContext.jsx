@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { fetchFavorites, addFavorite, removeFavorite } from '@/lib/queries';
 
@@ -45,8 +46,13 @@ export function FavoritesProvider({ children }) {
         return next;
       });
       try {
-        if (wasSaved) await removeFavorite(providerId);
-        else await addFavorite(providerId);
+        if (wasSaved) {
+          await removeFavorite(providerId);
+          toast.success('Removed from saved providers');
+        } else {
+          await addFavorite(providerId);
+          toast.success('Provider saved');
+        }
       } catch {
         setIds((prev) => {
           const next = new Set(prev);
@@ -54,6 +60,7 @@ export function FavoritesProvider({ children }) {
           else next.delete(providerId);
           return next;
         });
+        toast.error('Could not update saved providers');
       }
     },
     [ids, isCustomer],

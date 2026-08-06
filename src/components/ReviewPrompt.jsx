@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react';
 import PropTypes from 'prop-types';
+import toast from 'react-hot-toast';
 import { createReview } from '@/lib/queries';
 import { Button, ErrorBanner, StarInput, StarRow } from '@/components/ui';
 import { formatDate } from '@/lib/format';
@@ -35,8 +36,11 @@ export function ReviewPrompt({ bookingId, providerName, existingReview, onSubmit
     try {
       const { review } = await createReview({ bookingId, rating, comment: comment.trim() });
       onSubmitted(review);
+      toast.success('Review submitted. Thank you!');
     } catch (err) {
-      setError(err?.response?.data?.error ?? 'Could not submit your review. Please try again.');
+      const msg = err?.response?.data?.error ?? 'Could not submit your review. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

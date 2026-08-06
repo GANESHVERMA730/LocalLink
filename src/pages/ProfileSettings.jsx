@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Save, User, Phone, Check } from 'lucide-react';
+import { Save, User, Phone, Upload } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { updateMe } from '@/lib/queries';
+import { api } from '@/lib/api';
 import { Button, Spinner, PageHeader, ErrorBanner, Avatar } from '@/components/ui';
 
 export function ProfileSettings() {
@@ -9,7 +11,7 @@ export function ProfileSettings() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,16 +23,36 @@ export function ProfileSettings() {
     e.preventDefault();
     setSaving(true);
     setError(null);
-    setSaved(false);
     try {
       await updateMe({ name, phone });
       await refreshUser();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
+      toast.success('Profile saved.');
     } catch {
-      setError('Could not save your profile. Please try again.');
+      const msg = 'Could not save your profile. Please try again.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    setUploading(true);
+    try {
+      const res = await api.post('/uploads/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      await updateMe({ profileImage: res.data.url });
+      await refreshUser();
+      toast.success('Profile photo updated.');
+    } catch {
+      toast.error('Could not upload photo. Max 5 MB, images only.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -41,10 +63,27 @@ export function ProfileSettings() {
       <PageHeader title="Profile settings" subtitle="Manage your account information" />
       <form onSubmit={handleSave} className="space-y-6">
         {error && <ErrorBanner message={error} />}
-        {saved && <div className="flex items-center gap-2 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-700"><Check size={16} />Profile saved.</div>}
         <div className="card p-4 sm:p-5">
           <div className="mb-4 flex items-center gap-4">
-            <Avatar src={user?.profileImage} name={name || 'User'} size="lg" className="shrink-0" />
+            <div className="relative shrink-0">
+              <Avatar src={user?.profileImage} name={name || 'User'} size="lg" />
+              <label
+                htmlFor="avatar-upload"
+                className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white shadow hover:bg-primary-700"
+                aria-label="Upload profile photo"
+                title="Upload photo"
+              >
+                {uploading ? <Spinner className="h-3 w-3" /> : <Upload size={12} />}
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handleAvatarChange}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
             <div className="min-w-0"><p className="truncate font-semibold text-ink-900">{user?.email}</p><p className="text-sm capitalize text-ink-400">{user?.role}</p></div>
           </div>
           <div className="space-y-4">

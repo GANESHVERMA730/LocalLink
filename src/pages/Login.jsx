@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Mail, Lock, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Button, ErrorBanner } from '@/components/ui';
 
@@ -25,6 +26,7 @@ export function Login() {
       setError(error);
       return;
     }
+    toast.success('Welcome back!');
     navigate(from, { replace: true });
   };
 
@@ -72,6 +74,9 @@ export function Login() {
               <div className="relative">
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-400" />
                 <input id="password" type="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className="input pl-10" placeholder="Enter your password" />
+              </div>
+              <div className="mt-1.5 text-right">
+                <Link to="/forgot-password" className="text-xs font-medium text-primary-600 hover:text-primary-700">Forgot password?</Link>
               </div>
             </div>
             <Button type="submit" loading={loading} className="w-full">

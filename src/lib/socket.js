@@ -60,3 +60,20 @@ export function onBookingUpdated(callback) {
   s.on('booking:updated', callback);
   return () => s.off('booking:updated', callback);
 }
+
+export function onNotificationNew(callback) {
+  const s = getSocket();
+  s.on('notification:new', callback);
+  return () => s.off('notification:new', callback);
+}
+
+export function emitTyping(bookingId, typing) {
+  const s = getSocket();
+  s.emit('chat:typing', { bookingId, typing });
+}
+
+export function onTyping(callback) {
+  const s = getSocket();
+  s.on('chat:typing', callback);
+  return () => s.off('chat:typing', callback);
+}

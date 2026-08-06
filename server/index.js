@@ -14,8 +14,16 @@ import availabilityRoutes from './routes/availabilities.js';
 import bookingRoutes from './routes/bookings.js';
 import geocodeRoutes from './routes/geocode.js';
 import reviewRoutes from './routes/reviews.js';
+import notificationRoutes from './routes/notifications.js';
+import uploadRoutes from './routes/uploads.js';
+import passwordResetRoutes from './routes/passwordReset.js';
 import { Message } from './models/Message.js';
 import { Booking } from './models/Booking.js';
+import { Notification } from './models/Notification.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const server = http.createServer(app);
@@ -37,6 +45,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json({ limit: '1mb' }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordResetRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/providers', providerRoutes);
 app.use('/api/services', serviceRoutes);
@@ -44,6 +53,11 @@ app.use('/api/availabilities', availabilityRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/geocode', geocodeRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/uploads', uploadRoutes);
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
@@ -65,6 +79,9 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.user.id}`);
+
+  // Join personal user room for notifications
+  socket.join(`user:${socket.user.id}`);
 
   // Join a booking room
   socket.on('join:booking', async (bookingId) => {
@@ -101,10 +118,33 @@ io.on('connection', (socket) => {
       };
       io.to(`booking:${bookingId}`).emit('chat:newMessage', payload);
       if (callback) callback({ success: true, message: payload });
+
+      // Notify the other participant if they're not actively in the room
+      const recipientId = booking.customer.toString() === uid
+        ? booking.provider.toString()
+        : booking.customer.toString();
+      try {
+        const notif = await Notification.create({
+          user: recipientId,
+          type: 'new_message',
+          title: 'New message',
+          message: `${message.sender.name} sent you a message`,
+          link: `/dashboard/bookings/${bookingId}`,
+          relatedId: bookingId,
+        });
+        io.to(`user:${recipientId}`).emit('notification:new', { notification: notif });
+      } catch (e) {
+        console.error('Failed to create message notification:', e);
+      }
     } catch (e) {
       console.error(`chat:sendMessage failed for booking ${bookingId}:`, e);
       if (callback) callback({ success: false, error: 'Failed to send' });
     }
+  });
+
+  // Typing indicator
+  socket.on('chat:typing', ({ bookingId, typing }) => {
+    socket.to(`booking:${bookingId}`).emit('chat:typing', { userId: socket.user.id, typing });
   });
 
   socket.on('disconnect', () => {

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { Booking } from '../models/Booking.js';
 import { Message } from '../models/Message.js';
+import { Notification } from '../models/Notification.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
@@ -72,6 +73,16 @@ router.get('/:id', auth, async (req, res, next) => {
   }
 });
 
+async function createNotification(io, userId, data) {
+  try {
+    const notification = await Notification.create({ user: userId, ...data });
+    io.to(`user:${userId}`).emit('notification:new', { notification });
+    return notification;
+  } catch (err) {
+    console.error('Failed to create notification:', err);
+  }
+}
+
 // Create booking (customer)
 router.post('/', auth, requireRole('customer'), async (req, res, next) => {
   try {
@@ -89,6 +100,16 @@ router.post('/', auth, requireRole('customer'), async (req, res, next) => {
     await booking.populate('customer', 'name email phone profileImage');
     await booking.populate('provider', 'name email phone profileImage');
     await booking.populate('service', 'title category basePrice priceUnit');
+
+    // Notify provider of new booking request
+    createNotification(req.io, data.providerId, {
+      type: 'booking_created',
+      title: 'New booking request',
+      message: `${booking.customer.name} requested "${booking.service.title}"`,
+      link: `/dashboard/bookings/${booking._id}`,
+      relatedId: booking._id,
+    });
+
     res.status(201).json({ booking });
   } catch (err) {
     next(err);
@@ -135,6 +156,27 @@ router.patch('/:id', auth, async (req, res, next) => {
 
     // Emit Socket.io event
     req.io.to(`booking:${booking._id}`).emit('booking:updated', { booking });
+
+    // Notify the other party
+    const serviceName = booking.service?.title ?? 'service';
+    const notifyUserId = actingAs === 'provider'
+      ? booking.customer._id.toString()
+      : booking.provider._id.toString();
+    const notifyName = actingAs === 'provider' ? booking.provider.name : booking.customer.name;
+
+    const notifMap = {
+      accepted: { type: 'booking_accepted', title: 'Booking accepted', message: `${notifyName} accepted your booking for "${serviceName}"` },
+      rejected: { type: 'booking_rejected', title: 'Booking rejected', message: `${notifyName} declined your booking for "${serviceName}"` },
+      completed: { type: 'booking_completed', title: 'Booking completed', message: `Your booking for "${serviceName}" has been marked complete` },
+      cancelled: { type: 'booking_cancelled', title: 'Booking cancelled', message: `Your booking for "${serviceName}" was cancelled` },
+    };
+    if (notifMap[status]) {
+      createNotification(req.io, notifyUserId, {
+        ...notifMap[status],
+        link: `/dashboard/bookings/${booking._id}`,
+        relatedId: booking._id,
+      });
+    }
 
     res.json({ booking });
   } catch (err) {
