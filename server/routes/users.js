@@ -11,7 +11,7 @@ const router = Router();
 const updateSchema = z.object({
   name: z.string().min(1).max(80).optional(),
   phone: z.string().max(30).optional(),
-  profileImage: z.string().url().optional().or(z.literal('')),
+  profileImage: z.string().optional().or(z.literal('')),
 });
 
 const favoriteSchema = z.object({

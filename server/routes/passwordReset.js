@@ -47,6 +47,7 @@ router.post('/forgot-password', resetLimiter, async (req, res, next) => {
 
     const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password?token=${token}`;
 
+    let devPreviewUrl = null;
     try {
       const transporter = await createTransporter();
       const info = await transporter.sendMail({
@@ -56,18 +57,22 @@ router.post('/forgot-password', resetLimiter, async (req, res, next) => {
         text: `You requested a password reset.\n\nClick the link below (valid for 1 hour):\n${resetUrl}\n\nIf you didn't request this, you can safely ignore this email.`,
         html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Reset my password</a></p><p>Link valid for 1 hour. If you didn't request this, ignore this email.</p>`,
       });
-      // In development, log the Ethereal preview URL so you can see the email without a real inbox
       const preview = nodemailer.getTestMessageUrl(info);
-      if (preview) console.log(`Password reset email preview: ${preview}`);
+      if (preview) {
+        console.log(`Password reset email preview: ${preview}`);
+        devPreviewUrl = preview;
+      }
     } catch (emailErr) {
       console.error('Failed to send reset email:', emailErr);
-      // Still respond with success so the user isn't stuck; log the token for dev use
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[DEV] Password reset URL: ${resetUrl}`);
-      }
+      console.log(`[DEV] Password reset URL: ${resetUrl}`);
     }
 
-    res.json({ message: 'If that email is registered, a reset link has been sent.' });
+    const resp = { message: 'If that email is registered, a reset link has been sent.' };
+    if (process.env.NODE_ENV !== 'production') {
+      resp.devResetUrl = resetUrl;
+      if (devPreviewUrl) resp.devPreviewUrl = devPreviewUrl;
+    }
+    res.json(resp);
   } catch (err) {
     next(err);
   }

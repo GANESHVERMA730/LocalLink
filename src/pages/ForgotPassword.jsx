@@ -10,14 +10,18 @@ export function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
+  const [devResetUrl, setDevResetUrl] = useState(null);
+  const [devPreviewUrl, setDevPreviewUrl] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      const { data } = await api.post('/auth/forgot-password', { email });
       setSent(true);
+      if (data.devResetUrl) setDevResetUrl(data.devResetUrl);
+      if (data.devPreviewUrl) setDevPreviewUrl(data.devPreviewUrl);
       toast.success('Check your email for a reset link.');
     } catch (err) {
       const msg = err?.response?.data?.error ?? 'Something went wrong. Please try again.';
@@ -45,6 +49,17 @@ export function ForgotPassword() {
               <p className="mt-2 text-sm text-ink-500">
                 If <strong>{email}</strong> is registered, we&apos;ve sent a password reset link. It expires in 1 hour.
               </p>
+              {devResetUrl && (
+                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-left">
+                  <p className="mb-1 text-xs font-semibold text-amber-800">Dev: use this link to reset</p>
+                  <a href={devResetUrl} className="break-all text-xs text-amber-700 underline">{devResetUrl}</a>
+                  {devPreviewUrl && (
+                    <p className="mt-2">
+                      <a href={devPreviewUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-amber-600 underline">View in Ethereal inbox →</a>
+                    </p>
+                  )}
+                </div>
+              )}
               <Link to="/login" className="btn-primary mt-6 inline-flex">Back to sign in</Link>
             </div>
           ) : (
