@@ -8,6 +8,12 @@ import { User } from '../models/User.js';
 
 const router = Router();
 
+function shouldExposeDevResetLink() {
+  if (process.env.ENABLE_DEV_RESET_LINK === 'true') return true;
+  if (process.env.ENABLE_DEV_RESET_LINK === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+}
+
 const resetLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { error: 'Too many requests, try again later' } });
 
 const forgotSchema = z.object({ email: z.string().email() });
@@ -68,7 +74,7 @@ router.post('/forgot-password', resetLimiter, async (req, res, next) => {
     }
 
     const resp = { message: 'If that email is registered, a reset link has been sent.' };
-    if (process.env.NODE_ENV !== 'production') {
+    if (shouldExposeDevResetLink()) {
       resp.devResetUrl = resetUrl;
       if (devPreviewUrl) resp.devPreviewUrl = devPreviewUrl;
     }

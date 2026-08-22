@@ -84,12 +84,12 @@ export function Login() {
             </Button>
           </form>
           <div className="mt-6 rounded-xl bg-ink-100 p-3 text-xs text-ink-500">
-            <p className="font-semibold text-ink-600">Demo accounts (password: demo123456)</p>
+            <p className="font-semibold text-ink-600">Demo accounts (password: Demo@12345)</p>
             <ul className="mt-1 space-y-0.5 break-all">
-              <li>customer@local.link</li>
-              <li>plumber@local.link</li>
-              <li>electric@local.link</li>
-              <li>tutor@local.link</li>
+              <li>customer.demo1@locallink.test</li>
+              <li>provider.plumber@locallink.test</li>
+              <li>provider.electrician@locallink.test</li>
+              <li>provider.tutor@locallink.test</li>
             </ul>
           </div>
         </div>

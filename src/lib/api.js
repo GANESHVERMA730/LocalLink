@@ -4,14 +4,35 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const api = axios.create({
   baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT to every request
+function apiOrigin() {
+  return API_URL.replace(/\/api\/?$/, '');
+}
+
+/** Resolve stored media paths (e.g. /uploads/…) to the backend origin. */
+export function resolveMediaUrl(src) {
+  if (!src) return '';
+  if (/^https?:\/\//i.test(src) || src.startsWith('data:')) return src;
+  const path = src.startsWith('/') ? src : `/${src}`;
+  return `${apiOrigin()}${path}`;
+}
+
+// Attach JWT to every request. Never force JSON Content-Type: Axios would then
+// send FormData as JSON and multer would never see req.file.
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('locallink_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    if (config.headers && typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+      config.headers.delete('content-type');
+    } else if (config.headers) {
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
+    }
   }
   return config;
 });

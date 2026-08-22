@@ -1,6 +1,7 @@
 import { Star, CheckCircle2, XCircle, Clock, X, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { resolveMediaUrl } from '@/lib/api';
 
 export function Spinner({ className = 'h-5 w-5' }) {
   return <Loader2 className={`${className} animate-spin text-primary-500`} />;
@@ -56,8 +57,9 @@ export function ProviderCardSkeleton() {
 export function Avatar({ src, name, size = 'md', className = '' }) {
   const sizes = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-16 w-16 text-lg' };
   const initials = name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-  if (src) {
-    return <img src={src} alt={name} className={`${sizes[size]} rounded-full object-cover ring-2 ring-white shadow-sm ${className}`} />;
+  const imageSrc = resolveMediaUrl(src);
+  if (imageSrc) {
+    return <img src={imageSrc} alt={name} className={`${sizes[size]} rounded-full object-cover ring-2 ring-white shadow-sm ${className}`} />;
   }
   return (
     <div className={`${sizes[size]} flex items-center justify-center rounded-full bg-primary-100 font-semibold text-primary-700 ring-2 ring-white ${className}`}>

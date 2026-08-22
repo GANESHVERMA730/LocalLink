@@ -1,17 +1,41 @@
 import { Router } from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 import { User } from '../models/User.js';
 import { ProviderProfile } from '../models/ProviderProfile.js';
 import { Service } from '../models/Service.js';
 import { auth, requireRole } from '../middleware/auth.js';
+import { UPLOADS_DIR } from './uploads.js';
 
 const router = Router();
+
+function isSafeProfileImage(value) {
+  if (value === undefined) return true;
+  if (value === '') return true;
+  if (/^https?:\/\//i.test(value)) return true;
+  if (!value.startsWith('/uploads/')) return false;
+  const filename = value.slice('/uploads/'.length);
+  return Boolean(filename) && filename === path.basename(filename) && !filename.includes('..');
+}
+
+function unlinkLocalAvatar(url) {
+  if (!url || !url.startsWith('/uploads/')) return;
+  const filename = path.basename(url);
+  const full = path.join(UPLOADS_DIR, filename);
+  if (!full.startsWith(UPLOADS_DIR)) return;
+  try {
+    if (fs.existsSync(full)) fs.unlinkSync(full);
+  } catch (err) {
+    console.error('Could not remove previous avatar:', err.message);
+  }
+}
 
 const updateSchema = z.object({
   name: z.string().min(1).max(80).optional(),
   phone: z.string().max(30).optional(),
-  profileImage: z.string().optional().or(z.literal('')),
+  profileImage: z.string().max(2048).refine(isSafeProfileImage, 'Invalid profile image path').optional(),
 });
 
 const favoriteSchema = z.object({
@@ -25,8 +49,17 @@ router.get('/me', auth, async (req, res) => {
 router.patch('/me', auth, async (req, res, next) => {
   try {
     const data = updateSchema.parse(req.body);
+    const previousImage = req.user.profileImage;
     Object.assign(req.user, data);
     await req.user.save();
+    if (
+      data.profileImage !== undefined &&
+      previousImage &&
+      previousImage !== req.user.profileImage &&
+      previousImage.startsWith('/uploads/')
+    ) {
+      unlinkLocalAvatar(previousImage);
+    }
     res.json({ user: req.user });
   } catch (err) {
     next(err);

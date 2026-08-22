@@ -1,17 +1,22 @@
 import { Router } from 'express';
+import mongoose from 'mongoose';
 import { z } from 'zod';
 import { Booking } from '../models/Booking.js';
 import { Message } from '../models/Message.js';
 import { Notification } from '../models/Notification.js';
+import { User } from '../models/User.js';
+import { Service } from '../models/Service.js';
 import { auth, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 
+const objectId = z.string().refine((v) => mongoose.isValidObjectId(v), 'Invalid id');
+
 const createSchema = z.object({
-  providerId: z.string(),
-  serviceId: z.string(),
+  providerId: objectId,
+  serviceId: objectId,
   scheduledAt: z.string().or(z.date()),
-  durationMinutes: z.number().int().min(1).optional().default(60),
+  durationMinutes: z.number().int().min(15).max(480).optional().default(60),
   customerNotes: z.string().max(2000).optional().default(''),
 });
 
@@ -87,11 +92,39 @@ async function createNotification(io, userId, data) {
 router.post('/', auth, requireRole('customer'), async (req, res, next) => {
   try {
     const data = createSchema.parse(req.body);
+
+    if (data.providerId === req.user._id.toString()) {
+      return res.status(400).json({ error: 'You cannot book your own services' });
+    }
+
+    const provider = await User.findById(data.providerId);
+    if (!provider) return res.status(404).json({ error: 'Provider not found' });
+    if (provider.role !== 'provider') {
+      return res.status(400).json({ error: 'That account is not a provider' });
+    }
+
+    const service = await Service.findById(data.serviceId);
+    if (!service) return res.status(404).json({ error: 'Service not found' });
+    if (service.provider.toString() !== data.providerId) {
+      return res.status(400).json({ error: 'That service does not belong to this provider' });
+    }
+    if (!service.isActive) {
+      return res.status(400).json({ error: 'That service is not currently available' });
+    }
+
+    const scheduledAt = new Date(data.scheduledAt);
+    if (Number.isNaN(scheduledAt.getTime())) {
+      return res.status(400).json({ error: 'Scheduled date/time is invalid' });
+    }
+    if (scheduledAt.getTime() < Date.now() - 60 * 1000) {
+      return res.status(400).json({ error: 'Scheduled time must be in the future' });
+    }
+
     const booking = await Booking.create({
       customer: req.user._id,
-      provider: data.providerId,
-      service: data.serviceId,
-      scheduledAt: new Date(data.scheduledAt),
+      provider: provider._id,
+      service: service._id,
+      scheduledAt,
       durationMinutes: data.durationMinutes,
       customerNotes: data.customerNotes,
       status: 'pending',
