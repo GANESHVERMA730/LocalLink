@@ -43,9 +43,7 @@ export function ProfileSettings() {
     formData.append('image', file);
     setUploading(true);
     try {
-      const res = await api.post('/uploads/avatar', formData, {
-        headers: { 'Content-Type': undefined },
-      });
+      const res = await api.post('/uploads/avatar', formData);
       await updateMe({ profileImage: res.data.url });
       await refreshUser();
       toast.success('Profile photo updated.');

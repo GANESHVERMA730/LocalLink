@@ -1,99 +1,161 @@
 # LocalLink — Hyperlocal Service Marketplace
 
-A production-ready MERN-stack web app connecting customers with nearby service providers (plumbers, electricians, tutors, etc.) using geospatial search, real-time chat, and a booking state machine.
+A production-ready MERN-stack web application connecting customers with trusted local service providers — plumbers, electricians, tutors, cleaners, carpenters, and more — using geospatial search, real-time chat, and a booking state machine.
+
+---
+
+## Features
+
+| Feature | Details |
+|---------|---------|
+| **Authentication** | JWT-based login/register with bcrypt, role-based (customer / provider) |
+| **Provider Search** | Geospatial search by address name, category, minimum rating, and date availability |
+| **Leaflet Map** | Interactive map view with provider pins and list/map toggle |
+| **Address Autocomplete** | Nominatim-backed address search with coordinate resolution |
+| **Booking Flow** | Full state machine: pending → accepted / rejected → completed / cancelled |
+| **Real-time Chat** | Socket.io chat per booking with typing indicator |
+| **Notifications** | In-app real-time notifications for booking events and new messages |
+| **Reviews & Ratings** | Post-completion reviews; provider rating auto-recomputed on each review |
+| **Favorites** | Customers can save and view favourite providers |
+| **Avatar Upload** | Multer-based image upload with old-file cleanup and path traversal protection |
+| **Password Reset** | Token-based forgot/reset flow via email (Ethereal in dev, SMTP in production) |
+| **Responsive UI** | Tailwind CSS responsive layout, mobile-first |
+| **Error Boundary** | React error boundary catches unexpected component errors |
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Node.js, Express, MongoDB (Mongoose), Socket.io, JWT, bcrypt, Zod |
-| Frontend | React 18, Vite, React Router, Tailwind CSS, Axios, Socket.io-client |
-| Database | MongoDB with 2dsphere geospatial indexes |
+| **Backend** | Node.js, Express, MongoDB (Mongoose), Socket.io, JWT, bcryptjs, Zod, Multer, Nodemailer |
+| **Frontend** | React 18, Vite, React Router v7, Tailwind CSS, Axios, Socket.io-client, Leaflet |
+| **Database** | MongoDB with 2dsphere geospatial index on `ProviderProfile.location` |
+| **Validation** | Zod on all backend routes; HTML5 constraint validation on forms |
+
+---
 
 ## Project Structure
 
 ```
 locallink/
-├── server/                  # Express + Socket.io backend
-│   ├── index.js             # Entry point (HTTP + Socket.io)
-│   ├── seed.js              # Demo data seeder
-│   ├── .env.example
-│   ├── config/db.js         # Mongoose connection
-│   ├── models/              # User, ProviderProfile, Service, Availability, Booking, Message
-│   ├── middleware/          # auth (JWT), errorHandler
-│   └── routes/              # auth, users, providers, services, availabilities, bookings
-├── src/                     # React + Vite frontend
-│   ├── App.tsx              # Router with all routes
-│   ├── main.tsx
-│   ├── context/AuthContext.tsx
-│   ├── components/          # Navbar, SearchForm, ProviderCard, ChatWindow, BookingModal, ui
-│   ├── lib/                 # api.ts (Axios), socket.ts (Socket.io), queries.ts, format.ts
-│   ├── pages/               # Landing, Login, Register, customer/, provider/
-│   └── types/db.ts
-├── .env                     # Frontend env vars
+├── server/                        # Express + Socket.io backend
+│   ├── index.js                   # HTTP server + Socket.io entry point
+│   ├── seed.js                    # Idempotent demo data seeder
+│   ├── .env.example               # Required environment variables
+│   ├── config/
+│   │   └── db.js                  # Mongoose connection
+│   ├── middleware/
+│   │   ├── auth.js                # JWT auth + requireRole()
+│   │   └── errorHandler.js        # Global error handler
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── ProviderProfile.js     # Includes 2dsphere index
+│   │   ├── Service.js
+│   │   ├── Availability.js
+│   │   ├── Booking.js             # Append-only statusHistory
+│   │   ├── Review.js              # Unique per booking; triggers rating recompute
+│   │   ├── Message.js
+│   │   └── Notification.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── users.js               # Profile, favorites
+│   │   ├── providers.js           # Geospatial search + CRUD
+│   │   ├── services.js
+│   │   ├── availabilities.js
+│   │   ├── bookings.js            # State machine + chat history
+│   │   ├── reviews.js
+│   │   ├── notifications.js
+│   │   ├── uploads.js             # Avatar + service image upload (Multer)
+│   │   ├── geocode.js             # Nominatim forward/reverse geocode proxy
+│   │   └── passwordReset.js       # Forgot/reset password with rate limiting
+│   └── uploads/                   # Uploaded files (excluded from git)
+│       └── .gitkeep
+├── src/                           # React + Vite frontend
+│   ├── App.jsx                    # Router with all routes + ErrorBoundary
+│   ├── main.jsx
+│   ├── index.css
+│   ├── context/
+│   │   ├── AuthContext.jsx
+│   │   ├── FavoritesContext.jsx
+│   │   └── NotificationContext.jsx
+│   ├── components/
+│   │   ├── Navbar.jsx
+│   │   ├── SearchForm.jsx
+│   │   ├── ProviderCard.jsx
+│   │   ├── BookingModal.jsx
+│   │   ├── BookingCard.jsx
+│   │   ├── BookingTimeline.jsx
+│   │   ├── ChatWindow.jsx
+│   │   ├── ReviewsSection.jsx
+│   │   ├── ReviewPrompt.jsx
+│   │   ├── FavoriteButton.jsx
+│   │   ├── AddressAutocomplete.jsx
+│   │   └── ui.jsx                 # Shared UI primitives
+│   ├── lib/
+│   │   ├── api.js                 # Axios instance + JWT interceptor + resolveMediaUrl
+│   │   ├── socket.js              # Socket.io client singleton
+│   │   ├── queries.js             # All API call functions
+│   │   └── format.js              # Date/price formatters
+│   └── pages/
+│       ├── Landing.jsx
+│       ├── Login.jsx
+│       ├── Register.jsx
+│       ├── ForgotPassword.jsx
+│       ├── ResetPassword.jsx
+│       ├── ProfileSettings.jsx
+│       ├── BookingsList.jsx
+│       ├── BookingDetail.jsx
+│       ├── customer/
+│       │   ├── CustomerDashboard.jsx
+│       │   ├── CustomerSearch.jsx
+│       │   ├── Favorites.jsx
+│       │   └── ProviderProfile.jsx
+│       └── provider/
+│           ├── ProviderDashboard.jsx
+│           ├── ProviderProfileEditor.jsx
+│           ├── ServicesManager.jsx
+│           └── AvailabilityEditor.jsx
+├── public/
+│   ├── favicon.png
+│   └── og-image.png
+├── .env.example                   # Frontend environment variables
+├── vercel.json                    # Vercel SPA routing rewrite
+├── vite.config.js
+├── tailwind.config.js
 └── package.json
 ```
 
+---
+
 ## Prerequisites
 
-- Node.js 20+
-- MongoDB (local or [Atlas](https://www.mongodb.com/atlas))
+- **Node.js 20+**
+- **MongoDB** — local instance or [MongoDB Atlas](https://www.mongodb.com/atlas) free tier
 
-## Setup
+---
+
+## Installation & Setup
 
 ### 1. Backend
 
 ```bash
 cd server
 cp .env.example .env
-# Edit .env with your MONGODB_URI and JWT_SECRET
+# Edit .env — set MONGODB_URI and JWT_SECRET at minimum
 npm install
 ```
 
 ### 2. Frontend
 
 ```bash
-# From project root
+# From the project root
+cp .env.example .env
+# Edit .env if your backend runs on a different port
 npm install
 ```
 
-### 3. Environment Variables
-
-**`server/.env`:**
-```
-MONGODB_URI=mongodb+srv://user:pass@cluster.../locallink?retryWrites=true&w=majority
-JWT_SECRET=your_secure_random_string
-PORT=5000
-CLIENT_URL=http://localhost:5173
-```
-
-**`.env` (frontend, project root):**
-```
-VITE_API_URL=http://localhost:5000/api
-VITE_SOCKET_URL=http://localhost:5000
-```
-
-### 4. Seed Demo Data
-
-```bash
-cd server
-node seed.js
-```
-
-This creates:
-- 3 providers (plumber, electrician, tutor) with profiles, services, and availability in the NYC area
-- 1 customer
-
-**All demo accounts use password: `demo123456`**
-
-| Email | Role |
-|-------|------|
-| customer@local.link | Customer |
-| plumber@local.link | Provider (Plumber) |
-| electric@local.link | Provider (Electrician) |
-| tutor@local.link | Provider (Tutor) |
-
-### 5. Run Locally
+### 3. Run in development
 
 **Terminal 1 — Backend:**
 ```bash
@@ -106,85 +168,242 @@ npm run dev
 npm run dev
 ```
 
-Open http://localhost:5173
+Or run both at once from the project root:
+```bash
+npm run dev:all
+```
 
-## Testing Core Flows
+Open [http://localhost:5173](http://localhost:5173)
 
-1. **Login as a customer** (`customer@local.link` / `demo123456`)
-   - Go to Search, enter `40.71,-74.00` as coordinates or click "Use my location"
-   - Filter by category and radius
-   - Click a provider, view their profile, and book a service
+---
 
-2. **Login as a provider** (`plumber@local.link` / `demo123456`) in another browser/incognito
-   - Go to Bookings to see incoming requests
-   - Accept or reject the booking
-   - Open the booking chat and send messages
+## Environment Variables
 
-3. **Real-time chat:** Open the booking in both sessions — messages appear instantly
+### `server/.env`
 
-## API Endpoints
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGODB_URI` | ✅ | MongoDB connection string |
+| `JWT_SECRET` | ✅ | Long random string for signing tokens |
+| `PORT` | — | Defaults to `5000` |
+| `CLIENT_URL` | ✅ | Frontend origin for CORS + reset links (e.g. `http://localhost:5173`) |
+| `ENABLE_DEV_RESET_LINK` | — | `true` returns reset token in API response (dev only — **never set true in production**) |
+| `GEOCODE_USER_AGENT` | — | Sent to Nominatim (required by OSM usage policy) |
+| `EMAIL_USER` | — | SMTP username for production email |
+| `EMAIL_PASS` | — | SMTP password for production email |
+
+### `.env` (frontend root)
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend API base URL, e.g. `http://localhost:5000/api` |
+| `VITE_SOCKET_URL` | Backend Socket.io origin, e.g. `http://localhost:5000` |
+
+---
+
+## Seed Demo Data
+
+```bash
+cd server
+node seed.js
+```
+
+The seed is **idempotent** — it removes previous demo records by email before re-creating them. Running it twice is safe.
+
+### Demo Credentials (password: `Demo@12345` for all)
+
+**Customers**
+
+| Name | Email |
+|------|-------|
+| Demo Customer | `customer.demo1@locallink.test` |
+| Rahul Sharma | `customer.demo2@locallink.test` |
+
+**Providers** (all based in Lucknow, UP)
+
+| Name | Email | Category | Area |
+|------|-------|----------|------|
+| Rajesh Kumar | `provider.plumber@locallink.test` | Plumber | Aliganj |
+| Amit Verma | `provider.electrician@locallink.test` | Electrician | Gomti Nagar |
+| Priya Sharma | `provider.tutor@locallink.test` | Tutor | Indira Nagar |
+| Neha Singh | `provider.cleaner@locallink.test` | Cleaner | Hazratganj |
+| Arjun Patel | `provider.carpenter@locallink.test` | Carpenter | Mahanagar |
+
+---
+
+## API Overview
+
+### Auth
 
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | /api/auth/register | Register (name, email, password, role, phone) |
-| POST | /api/auth/login | Login → returns JWT + user |
-| GET | /api/users/me | Current user profile |
-| PATCH | /api/users/me | Update profile |
-| GET | /api/providers/search | Geospatial search (lat, lng, maxDistance, category, minRating, date) |
-| GET | /api/providers/:id | Public provider profile + services + availability |
-| POST | /api/providers | Create provider profile (provider only) |
-| PATCH | /api/providers/me | Update own provider profile |
-| GET | /api/services | List services |
-| POST | /api/services | Create service (provider only) |
-| PATCH | /api/services/:id | Update service |
-| DELETE | /api/services/:id | Delete service |
-| POST | /api/availabilities | Create availability slot |
-| PATCH | /api/availabilities/:id | Update availability |
-| DELETE | /api/availabilities/:id | Delete availability |
-| GET | /api/availabilities/provider/:providerId | List provider availability |
-| POST | /api/bookings | Create booking (customer) |
-| PATCH | /api/bookings/:id | Update booking status (state machine) |
-| GET | /api/bookings | List bookings for current user |
-| GET | /api/bookings/:id | Single booking detail |
-| GET | /api/bookings/:id/messages | Message history |
+| `POST` | `/api/auth/register` | Register — `{ name, email, password, role, phone }` |
+| `POST` | `/api/auth/login` | Login — returns `{ token, user }` |
+| `POST` | `/api/auth/forgot-password` | Request password reset link |
+| `POST` | `/api/auth/reset-password` | Reset password with token |
+
+### Users
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/users/me` | Fetch authenticated user |
+| `PATCH` | `/api/users/me` | Update name / phone / profileImage |
+| `GET` | `/api/users/me/favorites` | List saved providers |
+| `POST` | `/api/users/me/favorites` | Save a provider |
+| `DELETE` | `/api/users/me/favorites/:id` | Remove a saved provider |
+
+### Providers
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/providers/search` | Geospatial search — `lat`, `lng`, `maxDistance`, `category`, `minRating`, `date` |
+| `GET` | `/api/providers/:id` | Public profile + services + availability |
+| `POST` | `/api/providers` | Create provider profile (provider role) |
+| `PATCH` | `/api/providers/me` | Update own profile |
+| `GET` | `/api/providers/me/profile` | Own profile including all services |
+
+### Services
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/services` | List own services (provider) |
+| `POST` | `/api/services` | Create service |
+| `PATCH` | `/api/services/:id` | Update service |
+| `DELETE` | `/api/services/:id` | Delete service |
+
+### Bookings
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/bookings` | Create booking (customer) |
+| `GET` | `/api/bookings` | List bookings for current user |
+| `GET` | `/api/bookings/:id` | Single booking detail |
+| `PATCH` | `/api/bookings/:id` | Advance booking status (state machine) |
+| `GET` | `/api/bookings/:id/messages` | Chat history |
+
+### Booking State Machine
+
+```
+pending ──► accepted ──► completed
+   │              └──────► cancelled
+   └──► rejected
+   └──► cancelled (customer only)
+```
+
+### Other
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/reviews/provider/:id` | Paginated reviews + aggregate |
+| `POST` | `/api/reviews` | Create review (completed bookings only) |
+| `GET` | `/api/notifications` | List notifications |
+| `POST` | `/api/uploads/avatar` | Upload profile photo (multipart, max 5 MB) |
+| `GET` | `/api/geocode/search` | Forward geocode via Nominatim |
+| `GET` | `/api/geocode/reverse` | Reverse geocode |
+| `GET` | `/api/health` | Health check |
+
+---
 
 ## Socket.io Events
 
 | Event | Direction | Description |
 |-------|-----------|-------------|
-| `join:booking` | Client → Server | Join a booking chat room |
-| `chat:sendMessage` | Client → Server | Send a message (validated against booking membership) |
+| `join:booking` | Client → Server | Join booking chat room |
+| `chat:sendMessage` | Client → Server | Send message (validated against booking membership) |
 | `chat:newMessage` | Server → Client | New message broadcast to booking room |
+| `chat:typing` | Bidirectional | Typing indicator |
 | `booking:updated` | Server → Client | Booking status changed |
+| `notification:new` | Server → Client | New notification for user |
+
+---
+
+## Image Uploads
+
+Uploaded files are served as static files from `server/uploads/` at `/uploads/<filename>`.
+
+The `resolveMediaUrl(src)` utility in `src/lib/api.js` prefixes the backend origin to `/uploads/…` paths so they resolve correctly in both development (via Vite proxy) and production.
+
+> **Production note:** `server/uploads/` is local disk storage. On platforms with ephemeral filesystems (Render free tier, Heroku), uploaded files are lost on redeploy. To make uploads durable in production, replace the multer disk storage in `server/routes/uploads.js` with a Cloudinary or S3 adapter — the frontend contract (upload returns `{ url }`, PATCH saves the URL string) does not need to change.
+
+---
+
+## Address Autocomplete & Map
+
+- **Geocoding:** Nominatim (OpenStreetMap) via the `/api/geocode` proxy. The proxy enforces the `GEOCODE_USER_AGENT` header required by the OSM usage policy.
+- **Map:** React-Leaflet with OpenStreetMap tiles. Provider pins are rendered using `ProviderCard` popups.
+- Customers search by location name (e.g. "Aliganj, Lucknow") — the frontend resolves to coordinates and passes `lat`/`lng` to the provider search.
+
+---
+
+## Password Reset
+
+In **development** (`ENABLE_DEV_RESET_LINK=true`), the API response includes `devResetUrl` so you can paste the link directly without email delivery.
+
+In **production** (`ENABLE_DEV_RESET_LINK=false` or unset), the URL is only sent via email. The API response never exposes the token.
+
+Email is sent via Nodemailer. In development it auto-creates an [Ethereal](https://ethereal.email/) test account and logs the preview URL to the server console.
+
+---
+
+## SPA Routing
+
+Direct URL access (e.g. refreshing `/dashboard/search`) is handled by:
+
+- **Netlify:** `public/_redirects` — `/* /index.html 200`
+- **Vercel:** `vercel.json` rewrites
+
+---
 
 ## Deployment
 
 ### Backend (Render / Railway)
 
 1. Push to GitHub
-2. Connect repo, set root directory to `server`
-3. Set environment variables: `MONGODB_URI`, `JWT_SECRET`, `PORT`, `CLIENT_URL`
+2. Connect the repo, set root directory to `server/`
+3. Build command: *(none — pure Node)*
 4. Start command: `node index.js`
+5. Set environment variables: `MONGODB_URI`, `JWT_SECRET`, `CLIENT_URL`, `PORT`, `ENABLE_DEV_RESET_LINK=false`
 
 ### Frontend (Vercel / Netlify)
 
-1. Connect repo
-2. Set `VITE_API_URL` and `VITE_SOCKET_URL` to your deployed backend URL
-3. Build command: `npm run build`
-4. Output directory: `dist`
+1. Connect the repo
+2. Build command: `npm run build`
+3. Output directory: `dist`
+4. Environment variables: `VITE_API_URL`, `VITE_SOCKET_URL` (both pointing to your deployed backend)
 
 ### MongoDB Atlas
 
-1. Create a free cluster
+1. Create a free M0 cluster
 2. Create a database user
-3. Whitelist `0.0.0.0/0` for development
+3. Add your server's IP (or `0.0.0.0/0` for Railway/Render)
 4. Copy the connection string into `MONGODB_URI`
 
-## Security Features
+---
 
-- JWT authentication with bcrypt password hashing
-- Rate limiting on auth endpoints
-- Input validation with Zod on all routes
-- Booking status transitions enforced server-side (state machine)
-- Socket.io JWT verification on connection
-- CORS configured for frontend origin
+## CORS & Security
+
+- CORS is restricted to the `CLIENT_URL` origin — set this to your deployed frontend URL in production.
+- Socket.io is also gated to `CLIENT_URL`.
+- All routes use Zod schema validation.
+- Auth routes are rate-limited with `express-rate-limit`.
+- File uploads are validated by MIME type and capped at 5 MB.
+- JWT tokens are verified on every authenticated request; invalid tokens return 401.
+
+---
+
+## Service Image Upload (Future Enhancement)
+
+The backend exposes `POST /api/uploads/service-image` for per-service images, and the `Service` model has no image field yet. The `ServicesManager` UI does not currently expose an image picker. This is a non-blocking future enhancement — the core marketplace is fully functional without per-service images.
+
+---
+
+## Building for Production
+
+```bash
+# Frontend
+npm run build       # outputs to dist/
+
+# Backend — no build step, runs directly with Node.js
+cd server
+npm start
+```
