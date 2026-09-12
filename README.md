@@ -2,7 +2,7 @@
 
 ## 🌐 Live Demo
 
-🚀 [View Live Project](https://full-stack-video-conferencing-platform.onrender.com)
+🚀 [View Live Project](https://local-link-sigma.vercel.app)
 
 A production-ready MERN-stack web application connecting customers with trusted local service providers — plumbers, electricians, tutors, cleaners, carpenters, and more — using geospatial search, real-time chat, and a booking state machine.
 
